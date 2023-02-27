@@ -63,7 +63,6 @@ module  apb_master_if  #(   parameter   APB_DATA_WIDTH  =  32,
         input   [OTHER_STRB_WIDTH -1:0]  other_strb_in,
     `endif
 
-    input   other_valid_in,
     input   [APB_DATA_WIDTH-1:0]  other_wdata_in,
     input   other_write_in
 
@@ -81,19 +80,19 @@ localparam  STATE_TRANS         =  4;
 localparam  STATE_ERROR         =  5;
 
 
-
 reg [TIMEOUT_CYCLE -1: 0]  wait_counter;
 
 reg [5:0]  apb_state;
 reg [5:0]  next_state;
 
 
-wire   addr_valid;
-wire   addr_changed;
-
-
-
-
+wire   addr_chagned;
+wire   prot_changed;
+wire   strb_changed;
+wire   wdata_changed;
+wire   write_changed;
+wire   signal_changed;
+wire   wait_timeout;
 
 //////////////////////////////////Combinatorial logic//////////////////////////////////////////
 
@@ -108,24 +107,30 @@ always @(*) begin
         case (1'd1)
 
             next_state[STATE_RST]:begin
-                
+                if (!other_sel_in)
+                    next_state[STATE_RST]     =   1'd1;
+                else if ( other_error_out )
+                    next_state[STATE_ERROR]   =   1'd1;
+                else
+                    next_state[STATE_SETUP]   =   1'd1;
             end
 
             next_state[STATE_SETUP]:begin
-
-                
+                if (!other_sel_in || signal_changed || other_error_in)
+                    next_state[STATE_ERROR]   =   1'd1;
+                else
+                    next_state[STATE_ENABLE]  =   1'd1;
             end
 
-            next_state[STATE_ENABLE]:begin
-
-            end
-
-        
-            next_state[STATE_WAIT]:begin
-
+            next_state[STATE_ENABLE] || next_state[STATE_WAIT]: begin
+                if (!other_sel_in || signal_changed || other_error_in || wait_timeout)
+                    next_state[STATE_ERROR]   =   1'd1;
+                else if (apb_ready_in)
+                    next_state[STATE_TRANS]   =   1'd1;
+                else
+                    next_state[STATE_WAIT]    =   1'd1;
             end
             
-
             default: 
                 next_state[STATE_RST]  =  1'd1;
 
@@ -204,40 +209,46 @@ always @(posedge apb_clk_in or negedge apb_rstn_in ) begin
                 end
 
                 apb_state[STATE_SETUP]:begin
-                    apb_addr_out <= other_addr_in;
-                    apb_penable_out <= 0;
-                    apb_prot_out <= other_prot_in;
-                    apb_strb_out <= other_strb_in;
-                    apb_write_out <= other_write_in;
-                    apb_pselx_out <= other_sels;
-                    if (other_write_in)
-                        apb_wdata_out <= other_wdata_in;
+
+                    `ifdef  APB_PROT
+                        apb_prot_out       <=  other_prot_in;
+                    `endif
+                    `ifdef  APB_WSTRB
+                        apb_strb_out       <=  other_strb_in;
+                    `endif
+
+                    apb_addr_out            <=  other_addr_in;
+                    apb_penable_out         <=  0;
+                    apb_psel_out            <=  1;
+                    apb_write_out           <=  other_write_in;
+                    apb_wdata_out           <=  other_write_in? other_wdata_in: 0;
                 end
 
                 apb_state[STATE_ENABLE]: apb_penable_out <= 1;
 
-                apb_state[STATE_WAIT]:;
+                apb_state[STATE_WAIT]:   wait_counter <= (wait_counter + 1);
 
                 apb_state[STATE_TRANS]:begin
-                    apb_penable_out <= 1;
-                    other_ready_out <= 1;
+                    apb_psel_out            <=  0;
+                    apb_penable_out         <=  0;
+                    other_ready_out         <=  1;
 
-                    if (apb_slverr_in || other_error_in) begin
-                        other_error_out <= 1;
-                        apb_slverr_out <= 1;
-                    end
-                    else begin
-                        if (!apb_write_out)
-                            apb_rdata <= apb_rdata_in;
-                    end
+                    `ifdef  APB_SLVERR
+                        other_error_out  <=  apb_slverr_in || other_error_in;
+                        apb_slverr_out   <=  apb_slverr_in || other_error_in;
+                    `else
+                        other_error_out  <=  other_error_in;
+                    `endif
+
+                    other_rdata_out      <=  apb_write_out? 0: apb_rdata_in;
 
                 end
 
                 apb_state[STATE_ERROR]: begin
-                    apb_pselx_out   <= 0;
-                    apb_penable_out <= 0;
-                    other_error_out <= 1;
-                    other_ready_out <= 1;
+                    apb_psel_out        <=  0;
+                    apb_penable_out     <=  0;
+                    other_error_out     <=  1;
+                    other_ready_out     <=  1;
                 end
                 default: ;
         endcase
@@ -248,14 +259,33 @@ end
 
 
 
+assign  addr_chagned   =  ( other_addr_in  != apb_addr_out);
+assign  write_changed  =  ( other_write_in != other_write_in);
+assign  wdata_changed  =  apb_write_out && (other_wdata_in != apb_wdata_out);
+
+`ifdef  APB_PROT
+assign  prot_changed   =  ( other_prot_in != apb_prot_out );
+`else
+assign  prot_changed   =  0;   
+`endif
+
+`ifdef  APB_WSTRB
+assign  strb_changed   =  ( other_strb_in != apb_strb_out );
+`else
+assign  strb_changed   =  0;   
+`endif
+
+
+assign  signal_changed = addr_chagned || write_changed || wdata_changed 
+                            || prot_changed || strb_changed;
+
+
 assign  other_clk_out = apb_clk_in;
-assign  other_rdata_out = apb_rdata;
-
-
-
+assign  wait_timeout  =  (wait_counter == TIMEOUT_CYCLE);
 
 
 
 
 endmodule
+
 
