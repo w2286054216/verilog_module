@@ -19,7 +19,6 @@
 `define  APB_DATA_WIDTH    32
 `define  APB_ADDR_WIDTH    32
 
-`define  APB_SLAVE_DEVICES   4
 
 `define TEST_APB_REQ      30
 
