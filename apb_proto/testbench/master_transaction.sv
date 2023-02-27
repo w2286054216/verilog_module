@@ -25,7 +25,7 @@ class  master_transaction  extends  uvm_sequence_item;
 
     rand  bit  [`APB_ADDR_WIDTH-1:0] addr;
     rand  bit  [1:0]  other_error;
-    rand  bit  valid;    
+    rand  bit  sel;    
     rand  bit  [`APB_DATA_WIDTH-1:0]  wdata;
     rand  bit  write;
 
@@ -42,7 +42,7 @@ class  master_transaction  extends  uvm_sequence_item;
     `uvm_object_utils_begin(master_transaction)
         `uvm_field_int(addr, UVM_ALL_ON)
         `uvm_field_int(other_error, UVM_ALL_ON)
-        `uvm_field_int(valid, UVM_ALL_ON)
+        `uvm_field_int(sel, UVM_ALL_ON)
         `uvm_field_int(wdata, UVM_ALL_ON)
         `uvm_field_int(write, UVM_ALL_ON)
 
