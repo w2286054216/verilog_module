@@ -14,37 +14,64 @@
 `ifndef _INCL_DRIVER
 `define _INCL_DRIVER
 
+`include  "definition.sv"
+`include  "master_if.sv"
+`include  "master_transaction.sv"
+`include  "uvm_pkg.sv"
 
-`include "apb_req.sv"
-`include "definition.sv"
-`include "master_if.sv"
-
-
-typedef class driver;
-
-
-class driver_cbs;
-
-   virtual task  call_func(input driver drv,
-		       input apb_req  new_req);
-   endtask
-endclass
+import  uvm_pkg::*;
 
 
+class apb_driver  extends  uvm_driver #(master_transaction);
 
-class driver;
 
-    event  driver_2_req;
-    mailbox #(apb_req) mbx;
+    `uvm_component_utils(apb_driver)
+
     VTSB_MASTER_T tsb_master_if;
-    driver_cbs cbsq[$]; 
+    
+    
+    function new (string name = "apb_driver", uvm_component parent = null);
+        super.new(name, parent);
+    endfunction // new
+
+    virtual function void build_phase(uvm_phase phase);
+        super.build_phase(phase);
+        if(!uvm_config_db #(VTSB_MASTER_T)::get(this, "", "vif", vif))
+            `uvm_fatal("my_driver", "virtual interface must be set for vif!!!")
+   endfunction
+
+   extern task main_phase(uvm_phase phase);
+   extern task drive_one_pkt(master_transaction tr);
+
+
+endclass //driver
+
+
+task  apb_driver::main_phase(uvm_phase phase);
+
+    // wait system reset end
+    while(!vif.rst_n)
+        @(posedge vif.clk);
+
+    while(1) begin
+        seq_item_port.get_next_item(req);
+        drive_one_pkt(req);
+        seq_item_port.item_done();
+    end
+
+endtask
+
+
+
+task  apb_driver::drive_one_pkt(master_transaction tr)
+
     
 
-    function  new(input event driver_send, input mailbox #(apb_req) mbxmbx, input VTSB_MASTER_T vmaster_if);
-        this.driver_2_req = driver_send;
-        this.mbx = mbxmbx;
-        this.tsb_master_if =  vmaster_if;
-    endfunction
+
+
+
+endtask
+
 
 
     task run();
@@ -120,10 +147,6 @@ class driver;
         tsb_master_if.sb.other_error <= 0;
         tsb_master_if.sb.sels <= 0;
     endtask
-
-
-
-endclass //driver
 
 
 `endif
