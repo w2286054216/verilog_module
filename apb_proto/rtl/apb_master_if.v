@@ -1,14 +1,14 @@
 
-/**********************************************************************************************************************************
+/**********************************************************************************
 * Module Name:     apb_master_if
 * Author:          wuqlan
 * Email:           
 * Date Created:    2022/12/28
 * Description:     APB master interface.
-*                  Address and data bus widths are configurable using APB_ADDR_WIDTH and APB_DATA_WIDTH parameters
-*                  apb_psel width can also be configured using SLAVE_DEVICES.
+*                  Address and data bus widths are configurable using APB_ADDR_WIDTH and APB_DATA_WIDTH
+*                  parameters apb_psel width can also be configured using SLAVE_DEVICES.
 * Version:         0.1
-*********************************************************************************************************************************/
+********************************************************************************/
 
 
 module  apb_master_if  #(   parameter   APB_DATA_WIDTH  =  32,
