@@ -10,8 +10,8 @@
 ********************************************************************************/
 
 
-`ifndef _INCL_APB_IF
-`define _INCL_APB_IF
+`ifndef  APB_IF_SV
+`define  APB_IF_SV
 
 
 `include "definition.sv"
