@@ -1,69 +1,67 @@
 
-/*************************************************************************************
-* Module Name:     apb_req
+/********************************************************************************
+* Module Name:     master_transaction
 * Author:          wuqlan
 * Email:           
 * Date Created:    2022/12/28
-* Description:     APB req class. Random APB req.
+* Description:     master_transaction class.
 *
 *
 * Version:         0.1
 *********************************************************************************/
 
 
-`ifndef  _INCL_APB_REQ
-`define  _INCL_APB_REQ
+`ifndef  MASTER_TRANSACTION_SV
+`define  MASTER_TRANSACTION_SV
 
 `include  "definition.sv"
 
-`include  ""
+`include  "uvm_pkg.sv"
+
+import  uvm_pkg::*;
 
 
+class  master_transaction  extends  uvm_sequence_item;
 
+    rand  bit  [`APB_ADDR_WIDTH-1:0] addr;
+    rand  bit  [1:0]  other_error;
+    rand  bit  valid;    
+    rand  bit  [`APB_DATA_WIDTH-1:0]  wdata;
+    rand  bit  write;
 
+    `ifdef  APB_WSTRB
+        rand  bit  [(`APB_DATA_WIDTH / 8) -1:0]  strb;
+    `endif
+    `ifdef  APB_PROT
+        rand  bit  [2:0]  prot;    
+    `endif
 
-class  apb_req;
-
-    rand  bit [`APB_ADDR_WIDTH-1:0] addr;
-    bit master_error;
-    rand  bit [1:0] other_error;
-    rand bit [2:0] prot;    
-    bit [`APB_DATA_WIDTH-1:0] rdata;
-    rand bit [$clog2(`APB_SLAVE_DEVICES) :0] sel_id;
-    rand bit [(`APB_DATA_WIDTH / 8) -1:0] strb;
-    rand bit valid;    
-    rand bit [`APB_DATA_WIDTH-1:0] wdata;
-    rand bit write;
 
     constraint addr_range { addr[`APB_ADDR_WIDTH-1:12] == 20'h20380;}
 
-    function  new();
-        this.master_error = 0;
-        this.rdata = 0;
+    `uvm_object_utils_begin(master_transaction)
+        `uvm_field_int(addr, UVM_ALL_ON)
+        `uvm_field_int(other_error, UVM_ALL_ON)
+        `uvm_field_int(valid, UVM_ALL_ON)
+        `uvm_field_int(wdata, UVM_ALL_ON)
+        `uvm_field_int(write, UVM_ALL_ON)
+
+        `ifdef  APB_WSTRB
+            `uvm_field_int(strb, UVM_ALL_ON)
+        `endif
+        `ifdef  APB_PROT
+            `uvm_field_int(prot, UVM_ALL_ON)  
+        `endif
+        
+    `uvm_object_utils_end
+
+
+    function  new(string name = "master_transaction");
+        super.new(name);
     endfunction //new()
 
 
-    function  tsb_apb_req  pack_req();
-        tsb_apb_req tsb_req;
-        tsb_req.addr = this.addr;
-        tsb_req.master_error = this.master_error;        
-        tsb_req.other_error = this.other_error;
-        tsb_req.prot = this.prot;
-        tsb_req.rdata = this.rdata;
-        tsb_req.sel_id = this.sel_id;
-        tsb_req.strb = this.strb;
-        tsb_req.valid = this.valid;                
-        tsb_req.wdata = this.wdata;
-        tsb_req.write = this.write;
-
-        return tsb_req;
-    endfunction
-
-
-
-endclass // apb_req
-
-
+endclass
 
 `endif
 
