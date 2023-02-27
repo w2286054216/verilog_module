@@ -11,39 +11,48 @@
 *********************************************************************************************************************************/
 
 
-`ifndef  _INCL_SLAVE_IF
-`define  _INCL_SLAVE_IF
+`ifndef  SLAVE_IF_SV
+`define  SLAVE_IF_SV
 
 `include "definition.sv"
 
 interface slave_if;
     
-    bit [`APB_ADDR_WIDTH-1:0] addr;
-    bit clk;
-    bit other_error;    
-    bit [2:0] prot;    
-    bit ready;
-    bit slave_ready;
-    bit [`APB_DATA_WIDTH-1:0] rdata;
-    bit sel;
-    bit slave_error;    
-    bit [(`APB_DATA_WIDTH / 8) -1:0] strb;
-    bit [`APB_DATA_WIDTH-1:0] wdata;
-    bit write;
+    bit  [`APB_ADDR_WIDTH-1:0]  addr;
+    bit  clk;
+    bit  other_error;
+    bit  [`APB_DATA_WIDTH-1:0]  rdata;
+    bit  ready;    
+    bit  sel;
+    bit  slave_error;
+    bit  [`APB_DATA_WIDTH-1:0]  wdata;
+    bit  write;
 
+    `ifdef  APB_PROT
+        bit  [2:0]  prot;    
+    `endif
+    `ifdef  APB_WSTRB
+        bit  [(`APB_DATA_WIDTH / 8) -1:0]  strb;
+    `endif
 
-
-    clocking sb @(negedge clk);
-        input  addr, slave_error, slave_ready, prot, sel, strb, wdata, write;
-        output  other_error, ready, rdata;
+    clocking cb @(negedge clk);
+        input  addr, slave_error,  
+                `ifdef  APB_PROT
+                    prot, 
+                `endif
+                `ifdef  APB_WSTRB
+                    strb, 
+                `endif
+                sel, wdata, write;
+        output  other_error, rdata, ready;
     endclocking
 
-    modport TSB_SLAVE (clocking sb, input clk);
+    modport TSB_SLAVE_IF (clocking cb, input clk);
 
 
 endinterface //master_if
 
-typedef virtual slave_if.TSB_SLAVE  VTSB_SLAVE_T;
+typedef virtual slave_if.TSB_SLAVE_IF  VTSB_SLAVE_IF;
 
 
 `endif
