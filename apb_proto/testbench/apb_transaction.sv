@@ -25,6 +25,7 @@ class  apb_transaction  extends  uvm_sequence_item;
     bit  [`APB_ADDR_WIDTH-1:0]  addr;
     bit  error;
     bit  [`APB_DATA_WIDTH-1:0]  rdata;
+    bit  valid;
     bit  [`APB_DATA_WIDTH-1:0]  wdata;
     bit  write;
 
@@ -40,6 +41,7 @@ class  apb_transaction  extends  uvm_sequence_item;
         `uvm_field_int(addr, UVM_ALL_ON)
         `uvm_field_int(error, UVM_ALL_ON)
         `uvm_field_int(rdata, UVM_ALL_ON)
+        `uvm_field_int(valid, UVM_ALL_ON)
         `uvm_field_int(wdata, UVM_ALL_ON)
         `uvm_field_int(write, UVM_ALL_ON)
 

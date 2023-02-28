@@ -20,7 +20,7 @@
 `include  "slave_transaction.sv"
 `include  "slave_if.sv"
 `include  "master_if.sv"
-`include  "master_transaction.sv"
+`include  "apb_transaction.sv"
 
 `include  "uvm_pkg.sv"
 
@@ -59,8 +59,8 @@ class apb_monitor  extends uvm_monitor;
    endfunction
 
    extern  task  main_phase(uvm_phase phase);
-   extern  tesk  master_collect_pkt(apb_transaction tr);
-   extern  tesk  slave_collect_pkt(apb_transaction tr);
+   extern  task  master_collect_pkt(apb_transaction tr);
+   extern  task  slave_collect_pkt(apb_transaction tr);
 
 
 
@@ -84,24 +84,56 @@ endtask
 
 
 
-tesk  apb_monitor::master_collect_pkt(apb_transaction tr);
+task  apb_monitor::master_collect_pkt(apb_transaction tr, output bit valid);
 
     @(m_vif.sel or m_vif.addr or m_vif.write or m_vif.wdata );
 
+    if ( !vif.addr && !vif.sel  && !vif.wdata  && !vif.write  && !vif.other_error )
+        return;
 
+    tr.addr    =  m_vif.addr;
+    tr.write   =  m_vif.write;
+    tr.wdata   =  m_vif.write? m_vif.wdata: 0;
+    tr.vaild   =  !(vif.sel && vif.other_error) ? 0:  1;
+
+    `ifdef  APB_WSTRB
+        tr.strb  =  m_vif.strb;
+    `endif
+    `ifdef  APB_PROT
+        tr.prot  =  m_vif.prot;
+    `endif
+
+    if ( !(vif.sel && vif.other_error) )
+        return;
+    
+    wait(m_vif == 1);
+    tr.rdata    =   !m_vif.write  && !m_vif.master_error ? m_vif.rdata:  0;
+    tr.error    =   m_vif.master_error || m_vif.master_error;
 
 
 endtask
 
 
 
-tesk  apb_monitor::slave_collect_pkt(apb_transaction tr);
+task  apb_monitor::slave_collect_pkt(apb_transaction tr);
     slave_transaction  slave_tr;
     slave_tr  =  new("slave_tr");
 
     wait(s_vif.sel == 1);
     assert (slave_tr.randomize());
     
+    tr.addr    =  s_vif.addr;
+    tr.write   =  s_vif.write;
+    tr.wdata   =  s_vif.write? s_vif.wdata: 0;
+    tr.valid   =  1;
+
+    `ifdef  APB_WSTRB
+        tr.strb  =  s_vif.strb;
+    `endif
+    `ifdef  APB_PROT
+        tr.prot  =  s_vif.prot;
+    `endif
+
 
     if (slave_tr.ready) begin
         s_vif.rdata           <=   #(slave_tr.ready) 1;
@@ -119,6 +151,13 @@ tesk  apb_monitor::slave_collect_pkt(apb_transaction tr);
         s_vif.other_error     <=  #(slave_tr.other_error -1) 1;
     else
         s_vif.other_error     <=  0;
+    
+    for (int i = 0; i < slave_tr.ready; i++) begin
+        if (s_vif.slave_error || s_vif.other_error) begin
+            tr.error  = 1;
+            break;
+        end
+    end
     
     @( posedge vif.clk);
 
