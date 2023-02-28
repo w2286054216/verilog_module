@@ -1,113 +1,89 @@
 
 
-/**********************************************************************************************************************************
-* File Name:     scoreboard.sv
+/****************************************************************************************
+* File Name:     apb_scoreboard.sv
 * Author:          wuqlan
 * Email:           
-* Date Created:    2022/12/28
+* Date Created:    2023/2/28
 * Description:      Save APB request and APB slave response.
 *
 *
 * Version:         0.1
-*********************************************************************************************************************************/
+****************************************************************************/
+
+`ifndef  APB_SCOREBOARD_SV
+`define  APB_SCOREBOARD_SV
+
+`include  "definition.sv"
+`include  "apb_transaction.sv"
+`include  "uvm_pkg.sv"
+
+import  uvm_pkg::*;
+
+
+class apb_scoreboard extends uvm_scoreboard;
+
+    `uvm_component_utils(apb_scoreboard)
+
+    apb_transaction  invalid_queue[$];
+    apb_transaction  master_queue[$];
+    apb_transaction  slave_queue[$];
+
+    uvm_blocking_get_port #(apb_transaction)  exp_port;
+    uvm_blocking_get_port #(apb_transaction)  act_port;
+
+    function  new(string name, uvm_component parent = null);
+        super.new(name, parent);
+    endfunction
+
+    extern virtual function void build_phase(uvm_phase phase);
+    extern virtual task main_phase(uvm_phase phase);
+
+endclass 
 
 
 
-`ifndef  _INCL_SCOREBOARD
-`define  _INCL_SCOREBOARD
+function void apb_scoreboard::build_phase(uvm_phase phase);
+   super.build_phase(phase);
+   exp_port = new("exp_port", this);
+   act_port = new("act_port", this);
+endfunction
 
-
-`include "definition.sv"
-
-
-
-
-class Scoreboard;
-   
-   tsb_apb_req setup_failed[$];
-   tsb_apb_req setup[$];
-   tsb_apb_resp  resps[$];
-
-   int  unsigned correct_setup, correct_setup_failed;
-   
-   function new();
-      this.correct_setup = 0;
-      this.correct_setup_failed = 0;
-   endfunction
-
-   function  void save_apb_req(input tsb_apb_req new_req);
-     if (!new_req.valid  || (new_req.valid && ( (new_req.sel_id > `APB_SLAVE_DEVICES) || 
-            !new_req.sel_id || (new_req.other_error == 1) )))
-            setup_failed.push_back(new_req);
-      else
-            setup.push_back(new_req);
-
-   endfunction
-
-   function  void save_apb_resp(input tsb_apb_resp new_resp);
-         resps.push_back(new_resp);
-   endfunction
-
-
-   function void  wrap_up();
-
-      foreach(setup_failed[i])begin
-            
-            if (!setup_failed[i].valid && setup_failed[i].master_error)
-                  continue;
-            if (setup_failed[i].valid && !setup_failed[i].master_error)
-                  continue;
-
-            correct_setup_failed++;
+task  apb_scoreboard::main_phase(uvm_phase phase);
+   apb_transaction  get_expect,  get_actual, tmp_tran;
+   bit result;
+ 
+   super.main_phase(phase);
+   fork 
+      while (1) begin
+         exp_port.get(get_expect);
+         expect_queue.push_back(get_expect);
       end
 
-      $display("setup failed: %d  setup: %d  resp: %d\n", setup_failed.size, setup.size, resps.size);
-
-      if (setup.size != resps.size) begin
-            $display("apb_req not equal resps\n");
-            return;
+      while (1) begin
+         act_port.get(get_actual);
+         if(expect_queue.size() > 0) begin
+            tmp_tran = expect_queue.pop_front();
+            result = get_actual.compare(tmp_tran);
+            if(result) begin 
+               `uvm_info("my_scoreboard", "Compare SUCCESSFULLY", UVM_LOW);
+            end
+            else begin
+               `uvm_error("my_scoreboard", "Compare FAILED");
+               $display("the expect pkt is");
+               tmp_tran.print();
+               $display("the actual pkt is");
+               get_actual.print();
+            end
+         end
+         else begin
+            `uvm_error("apb_scoreboard", "Received from DUT, while Expect Queue is empty");
+            $display("the unexpected pkt is");
+            get_actual.print();
+         end 
       end
-
-      foreach(setup[i]) begin
-            int unsigned j = i;
-            if ((setup[i].addr != resps[i].addr) || (setup[i].write != resps[i].write) || (setup[i].prot != resps[i].prot)
-            || (setup[i].strb != resps[i].strb) || (setup[i].sel_id != resps[i].monitor_id) )
-                  continue;
-
-            if (setup[i].write &&  !setup[i].other_error && !resps[i].other_error  && (setup[i].wdata != resps[i].wdata) )
-                  continue;
-
-            if (!setup[i].write && !setup[i].other_error && !resps[i].other_error && (setup[i].rdata != resps[i].rdata) )
-                  continue;
-
-            if (!setup[i].other_error && !resps[i].other_error && ( setup[i].master_error || resps[i].slave_error ))
-                  continue;
-
-
-            if ( setup[i].other_error && (setup[i].other_error < (resps[i].other_ready + 1)) && !resps[i].slave_error)
-                  continue;
-
-            if ( setup[i].other_error && !resps[i].other_error && (setup[i].other_error > (resps[i].other_ready + 1) )
-                              && resps[i].slave_error)
-                  continue;
-
-
-            if ( resps[i].other_error &&  !setup[i].master_error)
-                  continue;
-
-            correct_setup++;
-
-      end
-      
-
-      $display("correct setup failed: %d  correct setup: %d\n", this.correct_setup_failed, this.correct_setup);
-
-      
-   endfunction
-
-
-endclass
-
+   join
+endtask
 
 `endif
 
