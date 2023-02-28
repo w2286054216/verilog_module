@@ -31,7 +31,7 @@ class apb_monitor  extends uvm_monitor;
 
 
     `uvm_component_utils(apb_monitor)
-    bit  master_if;
+    bit  master_mon;
     VTSB_MASTER_IF  m_vif;
     VTSB_SLAVE_IF  s_vif;
 
@@ -45,7 +45,7 @@ class apb_monitor  extends uvm_monitor;
    virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
 
-        if (master_if) begin
+        if (master_mon) begin
             if(!uvm_config_db#(virtual my_if)::get(this, "", "m_vif", m_vif))
                 `uvm_fatal("apb_monitor", "virtual interface must be set for m_vif!!!")
         end
@@ -72,7 +72,7 @@ task  apb_monitor::main_phase(uvm_phase phase);
     while(1) begin
         tr = new("tr");
 
-        if (master_if)
+        if (master_mon)
             master_collect_pkt(tr);
         else
             slave_collect_pkt(tr);
