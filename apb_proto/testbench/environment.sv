@@ -15,11 +15,8 @@
 `define  _INCL_ENVIRONMENT
 
 `include "definition.sv"
-`include "driver.sv"
 `include "master_if.sv"
 `include "slave_if.sv"
-`include "monitor.sv"
-`include "req_generate.sv"
 `include "scoreboard.sv"
 
 
