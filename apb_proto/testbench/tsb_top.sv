@@ -43,7 +43,7 @@ module top;
     slave_if  vslave_if();
     apb_if  top_apb_bus( .clk(clk), .rstn(rstn));
 
-    apb_master_if #( `APB_DATA_WIDTH, ` APB_ADDR_WIDTH, `APB_SLAVE_DEVICES) apb_bus_master(
+    apb_master_if #( `APB_DATA_WIDTH, ` APB_ADDR_WIDTH) apb_bus_master(
              .apb_addr_out(top_apb_bus.addr),
              .apb_clk_in(top_apb_bus.clk),
              .apb_penable_out(top_apb_bus.penable),
@@ -75,7 +75,7 @@ module top;
              .other_rdata_out(vmaster_if.rdata),
              .other_sel_in(vmaster_if.sel),
              .other_wdata_in(vmaster_if.addr),
-             .other_write_in(vmaster_if.write),
+             .other_write_in(vmaster_if.write)
     );
 
 
