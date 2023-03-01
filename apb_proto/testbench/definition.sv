@@ -22,8 +22,6 @@
 
 `define TEST_APB_REQ      30
 
-`timescale  1ns/1ns
-
 
 typedef struct {
     bit [`APB_ADDR_WIDTH -1: 0] addr;
