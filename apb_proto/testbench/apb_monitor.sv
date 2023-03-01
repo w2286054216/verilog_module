@@ -94,7 +94,7 @@ task  apb_monitor::master_collect_pkt(apb_transaction tr, output bit valid);
     tr.addr    =  m_vif.addr;
     tr.write   =  m_vif.write;
     tr.wdata   =  m_vif.write? m_vif.wdata: 0;
-    tr.vaild   =  !(vif.sel && vif.other_error) ? 0:  1;
+    tr.vaild   =  !vif.sel || vif.other_error ?  0:  1;
 
     `ifdef  APB_WSTRB
         tr.strb  =  m_vif.strb;

@@ -50,37 +50,43 @@ function void apb_scoreboard::build_phase(uvm_phase phase);
 endfunction
 
 task  apb_scoreboard::main_phase(uvm_phase phase);
-   apb_transaction  get_expect,  get_actual, tmp_tran;
+   apb_transaction  slave_recv,  master_recv, tmp_tran;
    bit result;
  
    super.main_phase(phase);
    fork 
       while (1) begin
-         exp_port.get(get_expect);
-         expect_queue.push_back(get_expect);
+        exp_port.get(slave_recv);
+        slave_queue.push_back(slave_recv);
       end
 
       while (1) begin
-         act_port.get(get_actual);
-         if(expect_queue.size() > 0) begin
-            tmp_tran = expect_queue.pop_front();
-            result = get_actual.compare(tmp_tran);
-            if(result) begin 
-               `uvm_info("my_scoreboard", "Compare SUCCESSFULLY", UVM_LOW);
+            act_port.get(master_recv);
+            if (!master_recv.valid) begin
+                invalid_queue.push_back(master_recv);
+                continue;
+            end
+
+            if(slave_queue.size() > 0) begin
+                tmp_tran = slave_queue.pop_front();
+                result = master_recv.compare(tmp_tran);
+
+                if(result)begin
+                    `uvm_info("apb_scoreboard", "Compare SUCCESSFULLY", UVM_LOW);                    
+                end
+                else begin
+                    `uvm_error("apb_scoreboard", "Compare FAILED");
+                    $display("the expect pkt is");
+                    tmp_tran.print();
+                    $display("the actual pkt is");
+                    master_recv.print();
+                end
             end
             else begin
-               `uvm_error("my_scoreboard", "Compare FAILED");
-               $display("the expect pkt is");
-               tmp_tran.print();
-               $display("the actual pkt is");
-               get_actual.print();
+                `uvm_error("apb_scoreboard", "Received from DUT, while Expect Queue is empty");
+                $display("the unexpected pkt is");
+                master_recv.print();
             end
-         end
-         else begin
-            `uvm_error("apb_scoreboard", "Received from DUT, while Expect Queue is empty");
-            $display("the unexpected pkt is");
-            get_actual.print();
-         end 
       end
    join
 endtask

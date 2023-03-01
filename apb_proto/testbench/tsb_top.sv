@@ -13,7 +13,7 @@
 
 
 `include "definition.sv"
-`include "environment.sv"
+`include "apb_env.sv"
 
 `include  "definition.sv"
 `include  "master_if.sv"
@@ -47,9 +47,9 @@ module top;
              .apb_addr_out(top_apb_bus.addr),
              .apb_clk_in(top_apb_bus.clk),
              .apb_penable_out(top_apb_bus.penable),
-             .apb_pselx_out(top_apb_bus.sels),
+             .apb_psel_out(top_apb_bus.sel),
              .apb_rdata_in(top_apb_bus.rdata),
-             .apb_ready_in(top_apb_bus.master_ready),
+             .apb_ready_in(top_apb_bus.ready),
              .apb_rstn_in(top_apb_bus.rstn),
              .apb_wdata_out(top_apb_bus.wdata),
              .apb_write_out(top_apb_bus.write),
@@ -59,7 +59,7 @@ module top;
                 .other_prot_in(vmaster_if.prot),             
             `endif
             `ifdef  APB_SLVERR
-                .apb_slverr_in(top_apb_bus.master_error_in),
+                .apb_slverr_in(top_apb_bus.slave_error_in),
                 .apb_slverr_out(top_apb_bus.master_error_out),
             `endif
             `ifdef  APB_WSTRB
@@ -73,7 +73,7 @@ module top;
              .other_error_in(vmaster_if.other_error),
              .other_ready_out(vmaster_if.ready),
              .other_rdata_out(vmaster_if.rdata),
-             .other_sels_in(vmaster_if.sels),
+             .other_sel_in(vmaster_if.sel),
              .other_wdata_in(vmaster_if.addr),
              .other_write_in(vmaster_if.write),
     );
@@ -85,7 +85,7 @@ module top;
             .apb_penable_in(top_apb_bus.penable),
             .apb_psel_in(top_apb_bus.sel),
             .apb_rdata_out(top_apb_bus.rdata),
-            .apb_ready_out(top_apb_bus.slave_ready),
+            .apb_ready_out(top_apb_bus.ready),
             .apb_rstn_in(top_apb_bus.rstn),
             .apb_wdata_in(top_apb_bus.wdata),
             .apb_write_in(top_apb_bus.write),
@@ -118,7 +118,7 @@ module top;
         
 
     initial begin
-      run_test("apb_case0");
+        run_test("apb_case0");
     end
 
     initial begin

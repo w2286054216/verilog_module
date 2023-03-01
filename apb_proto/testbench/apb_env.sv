@@ -62,9 +62,9 @@ endclass
 function void apb_env::connect_phase(uvm_phase phase);
    super.connect_phase(phase);
    m_agt.ap.connect(magt_scb_fifo.analysis_export);
-   scb.exp_port.connect(magt_scb_fifo.blocking_get_export);
+   scb.act_port.connect(magt_scb_fifo.blocking_get_export);
    s_agt.ap.connect(sagt_scb_fifo.analysis_export);
-   scb.act_port.connect(sagt_scb_fifo.blocking_get_export); 
+   scb.exp_port.connect(sagt_scb_fifo.blocking_get_export); 
 endfunction
 
 
