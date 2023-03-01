@@ -27,7 +27,7 @@ class apb_driver  extends  uvm_driver #(master_transaction);
 
     `uvm_component_utils(apb_driver)
 
-    VTSB_MASTER_IF tsb_master_if;
+    VTSB_MASTER_IF vif;
     
     
     function new (string name = "apb_driver", uvm_component parent = null);
@@ -51,8 +51,6 @@ endclass //driver
 task  apb_driver::main_phase(uvm_phase phase);
 
     // wait system reset end
-    while(!vif.rst_n)
-        @(posedge vif.clk);
 
     while(1) begin
         seq_item_port.get_next_item(req);

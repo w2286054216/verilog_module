@@ -48,11 +48,13 @@ endclass
 
 class apb_case0 extends base_test;
 
-   function new(string name = "my_case0", uvm_component parent = null);
+   `uvm_component_utils(apb_case0)
+
+   function new(string name = "apb_case0", uvm_component parent = null);
       super.new(name,parent);
    endfunction 
    extern virtual function void build_phase(uvm_phase phase); 
-   `uvm_component_utils(my_case0)
+
 endclass
 
 

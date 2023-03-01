@@ -46,11 +46,11 @@ class apb_monitor  extends uvm_monitor;
         super.build_phase(phase);
 
         if (master_mon) begin
-            if(!uvm_config_db#(virtual my_if)::get(this, "", "m_vif", m_vif))
+            if(!uvm_config_db#(VTSB_MASTER_IF)::get(this, "", "m_vif", m_vif))
                 `uvm_fatal("apb_monitor", "virtual interface must be set for m_vif!!!")
         end
         else begin
-            if(!uvm_config_db#(virtual my_if)::get(this, "", "s_vif", s_vif))
+            if(!uvm_config_db#(VTSB_SLAVE_IF)::get(this, "", "s_vif", s_vif))
                 `uvm_fatal("apb_monitor", "virtual interface must be set for s_vif!!!")
             
         end
@@ -84,7 +84,7 @@ endtask
 
 
 
-task  apb_monitor::master_collect_pkt(apb_transaction tr, output bit valid);
+task  apb_monitor::master_collect_pkt(apb_transaction tr);
 
     @(m_vif.sel or m_vif.addr or m_vif.write or m_vif.wdata );
 
@@ -106,7 +106,7 @@ task  apb_monitor::master_collect_pkt(apb_transaction tr, output bit valid);
     if ( !(vif.sel && vif.other_error) )
         return;
     
-    wait(m_vif == 1);
+    wait(m_vif.ready == 1);
     tr.rdata    =   !m_vif.write  && !m_vif.master_error ? m_vif.rdata:  0;
     tr.error    =   m_vif.master_error || m_vif.master_error;
 

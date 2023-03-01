@@ -15,9 +15,10 @@
 `include "definition.sv"
 `include "apb_env.sv"
 
-`include  "definition.sv"
+
 `include  "master_if.sv"
 `include  "slave_if.sv"
+`include  "definition.sv"
 `include  "apb_case0.sv"
 
 `include  "uvm_macros.svh"
@@ -108,7 +109,6 @@ module top;
             .other_error_in(vslave_if.other_error),
             .other_error_out(vslave_if.slave_error),    
             .other_ready_in(vslave_if.ready),
-            .other_ready_out(vslave_if.slave_ready),
             .other_rdata_in(vslave_if.rdata),
             .other_sel_out(vslave_if.sel),
             .other_wdata_out(vslave_if.wdata),
@@ -122,9 +122,9 @@ module top;
     end
 
     initial begin
-        uvm_config_db#(virtual my_if)::set(null, "uvm_test_top.env.m_agt.drv", "vif", vmaster_if);
-        uvm_config_db#(virtual my_if)::set(null, "uvm_test_top.env.m_agt.mon", "m_vif", vmaster_if);
-        uvm_config_db#(virtual my_if)::set(null, "uvm_test_top.env.s_agt.mon", "s_vif", vslave_if);
+        uvm_config_db#( virtual master_if)::set(null, "uvm_test_top.env.m_agt.drv", "vif", vmaster_if);
+        uvm_config_db#( virtual master_if)::set(null, "uvm_test_top.env.m_agt.mon", "m_vif", vmaster_if);
+        uvm_config_db#( virtual slave_if)::set(null, "uvm_test_top.env.s_agt.mon", "s_vif", vslave_if);
     end
 
 
