@@ -20,7 +20,7 @@
 `include  "slave_if.sv"
 `include  "apb_case0.sv"
 
-`include  "uvm_pkg.sv"
+`include  "uvm_macros.svh"
 
 import  uvm_pkg::*;
 

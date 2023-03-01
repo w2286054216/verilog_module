@@ -17,7 +17,7 @@
 `include  "definition.sv"
 `include  "master_if.sv"
 `include  "master_transaction.sv"
-`include  "uvm_pkg.sv"
+`include  "uvm_macros.svh"
 
 import  uvm_pkg::*;
 
