@@ -36,8 +36,9 @@ class apb_driver  extends  uvm_driver #(master_transaction);
 
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        if(!uvm_config_db #(VTSB_MASTER_IF)::get(this, "", "vif", vif))
-            `uvm_fatal("my_driver", "virtual interface must be set for vif!!!")
+        if(!uvm_config_db #(virtual master_if)::get(this, "", "vif", vif))
+            `uvm_fatal("apb_driver", "virtual interface must be set for vif!!!")
+
    endfunction
 
    extern  task  main_phase(uvm_phase phase);

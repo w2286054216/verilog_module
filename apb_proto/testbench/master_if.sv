@@ -35,7 +35,7 @@ interface master_if;
         bit  [(`APB_DATA_WIDTH / 8) -1:0] strb;
     `endif
 
-    clocking cb @(negedge clk);
+    clocking cbr @(negedge clk);
         input  master_error, ready, rdata;
         output addr, other_error,
                 `ifdef APB_PROT
@@ -49,7 +49,7 @@ interface master_if;
                 sel, wdata, write;
     endclocking
 
-    modport TSB_MASTER_IF (clocking cb, input clk);
+    modport TSB_MASTER_IF (clocking cbr, input clk);
 
 endinterface //master_if
 
