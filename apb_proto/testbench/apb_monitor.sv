@@ -86,31 +86,35 @@ endtask
 
 task  apb_monitor::master_collect_pkt(apb_transaction tr);
 
-    @(m_vif.cbm.sel or m_vif.cbm.addr or m_vif.cbm.write or m_vif.cbm.wdata );
 
-    if ( !m_vif.cbm.addr && !m_vif.cbm.sel  && !m_vif.cbm.wdata  && 
-            !m_vif.cbm.write  && !m_vif.cbm.other_error )
+    @(m_vif.sel or m_vif.addr or m_vif.write or m_vif.wdata );
+
+
+    @(posedge  m_vif.clk);
+    if ( !m_vif.addr && !m_vif.sel  && !m_vif.wdata  && 
+            !m_vif.write  && !m_vif.other_error )
         return;
 
-    tr.addr    =  m_vif.cbm.addr;
-    tr.write   =  m_vif.cbm.write;
-    tr.wdata   =  m_vif.cbm.write? m_vif.cbm.wdata: 0;
-    tr.valid   =  !m_vif.cbm.sel || m_vif.cbm.other_error ?  0:  1;
+    tr.addr    =  m_vif.addr;
+    tr.write   =  m_vif.write;
+    tr.wdata   =  m_vif.write? m_vif.wdata: 0;
+    tr.valid   =  !m_vif.sel || m_vif.other_error ?  0:  1;
 
     `ifdef  APB_WSTRB
-        tr.strb  =  m_vif.cbm.strb;
+        tr.strb  =  m_vif.strb;
     `endif
     `ifdef  APB_PROT
-        tr.prot  =  m_vif.cbm.prot;
+        tr.prot  =  m_vif.prot;
     `endif
 
-    if ( !(m_vif.cbm.sel && !m_vif.cbm.other_error) )
+    if ( !(m_vif.sel && !m_vif.other_error) )
         return;
     
-    wait(m_vif.cbm.ready == 1);
+    wait(m_vif.ready == 1'd1);
+    @(posedge  m_vif.clk);
 
-    tr.rdata    =   !m_vif.cbm.write  && !m_vif.cbm.master_error ? m_vif.cbm.rdata:  0;
-    tr.error    =   m_vif.cbm.master_error || m_vif.cbm.master_error;
+    tr.rdata    =   !m_vif.write  && !m_vif.master_error ? m_vif.rdata:  0;
+    tr.error    =   m_vif.master_error || m_vif.master_error;
 
 
 endtask
@@ -121,38 +125,39 @@ task  apb_monitor::slave_collect_pkt(apb_transaction tr);
     slave_transaction  slave_tr;
     slave_tr  =  new("slave_tr");
 
-    wait(s_vif.cb.sel == 1);
+    wait(s_vif.sel == 1'd1);
+    @(posedge  s_vif.clk);
     assert (slave_tr.randomize());
     
-    tr.addr    =  s_vif.cb.addr;
-    tr.write   =  s_vif.cb.write;
-    tr.wdata   =  s_vif.cb.write? s_vif.cb.wdata: 0;
+    tr.addr    =  s_vif.addr;
+    tr.write   =  s_vif.write;
+    tr.wdata   =  s_vif.write? s_vif.wdata: 0;
     tr.valid   =  1;
 
     `ifdef  APB_WSTRB
-        tr.strb  =  s_vif.cb.strb;
+        tr.strb  =  s_vif.strb;
     `endif
     `ifdef  APB_PROT
-        tr.prot  =  s_vif.cb.prot;
+        tr.prot  =  s_vif.prot;
     `endif
 
 
     if (slave_tr.ready) begin
-          s_vif.rdata  <= repeat(slave_tr.ready) @(posedge s_vif.clk) s_vif.cb.write?
+          s_vif.rdata  <= repeat(slave_tr.ready) @(posedge s_vif.clk) s_vif.write?
                                       0: slave_tr.rdata;
           s_vif.ready  <= repeat(slave_tr.ready)  @(posedge s_vif.clk)  1;
     end
     else begin
-        s_vif.cb.rdata           <=   s_vif.cb.write? slave_tr.rdata: 0;
+        s_vif.cb.rdata           <=   s_vif.write? slave_tr.rdata: 0;
         s_vif.cb.ready           <=   1;
     end
 
     if (slave_tr.other_error == 1)
-        s_vif.cb.other_error     <=  1;
+        s_vif.other_error     <=  1;
     else if (slave_tr.other_error)
         s_vif.other_error <= repeat(slave_tr.other_error -1) @(posedge s_vif.clk) 1;
     else
-        s_vif.cb.other_error     <=  0;
+        s_vif.other_error     <=  0;
     
     for (int i = 0; i < slave_tr.ready; i++) begin
         @(posedge s_vif.clk);

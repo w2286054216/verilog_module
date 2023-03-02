@@ -64,23 +64,23 @@ endtask
 
 function  void  apb_driver::setup(master_transaction tr);
 
-
-    vif.cb.addr    <=  tr.addr;
-    vif.cb.sel     <=  tr.sel;
-    vif.cb.wdata   <=  tr.write ? tr.wdata: 0;
-    vif.cb.write   <=  tr.write;
+    @(posedge vif.clk);
+    vif.addr    <=  tr.addr;
+    vif.sel     <=  tr.sel;
+    vif.wdata   <=  tr.write ? tr.wdata: 0;
+    vif.write   <=  tr.write;
 
     `ifdef  APB_WSTRB
-        vif.cb.strb     <=   tr.strb;
+        vif.strb     <=   tr.strb;
     `endif
     `ifdef  APB_PROT
-        vif.cb.prot     <=   tr.prot;
+        vif.prot     <=   tr.prot;
     `endif
 
     if (tr.other_error == 1)
-        vif.cb.other_error   <=   1;
+        vif.other_error   <=   1;
     else if (tr.other_error)
-        vif.cb.other_error   <= ##(tr.other_error - 1)   1;
+        vif.other_error   <=  repeat(tr.other_error - 1)  @(posedge vif.clk)  1;
     else
         vif.cb.other_error   <=   0;
 
@@ -89,19 +89,19 @@ endfunction
 
 function  void  apb_driver::reset_if();
 
-    vif.cb.addr    <=  0;
-    vif.cb.sel     <=  0;
-    vif.cb.wdata   <=  0;
-    vif.cb.write   <=  0;
+    vif.addr    <=  0;
+    vif.sel     <=  0;
+    vif.wdata   <=  0;
+    vif.write   <=  0;
 
     `ifdef  APB_WSTRB
-        vif.cb.strb     <=   0;
+        vif.strb     <=   0;
     `endif
     `ifdef  APB_PROT
-        vif.cb.prot     <=   0;
+        vif.prot     <=   0;
     `endif
 
-    vif.cb.other_error  <=   0;
+    vif.other_error  <=   0;
 
 endfunction
 
@@ -111,12 +111,12 @@ task  apb_driver::drive_one_pkt(master_transaction tr);
 
     setup(tr);
 
-    wait(vif.cb.ready == 1'd1);
+    wait(vif.ready == 1'd1);
 
-    vif.cb.sel   <=  0;
+    @(posedge vif.clk);
+    vif.sel   <=  0;
 
-    repeat(6)  @(vif.cb);
-
+    repeat(6)  @(posedge vif.clk);
     reset_if();
 
 endtask
