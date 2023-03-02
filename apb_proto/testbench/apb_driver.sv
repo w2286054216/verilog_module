@@ -36,7 +36,7 @@ class apb_driver  extends  uvm_driver #(master_transaction);
 
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        if(!uvm_config_db #(virtual master_if)::get(this, "", "vif", vif))
+        if(!uvm_config_db #(VTSB_MASTER_IF)::get(this, "", "vif", vif))
             `uvm_fatal("apb_driver", "virtual interface must be set for vif!!!")
 
    endfunction
@@ -64,6 +64,7 @@ endtask
 
 function  void  apb_driver::setup(master_transaction tr);
 
+    @(posedge vif.clk);
     vif.addr    <=  tr.addr;
     vif.sel     <=  tr.sel;
     vif.wdata   <=  tr.write ? tr.wdata: 0;
@@ -78,8 +79,11 @@ function  void  apb_driver::setup(master_transaction tr);
 
     if (tr.other_error == 1)
         vif.other_error   <=   1;
-    else if (tr.other_error)
-        vif.other_error   <=  #(tr.other_error - 1) 1;
+    else if (tr.other_error)begin
+        repeat(tr.other_error - 1)  @(posedge vif.clk);
+        vif.other_error   <=   1;
+    end
+
     else
         vif.other_error   <=   0;
 

@@ -35,7 +35,10 @@ interface slave_if;
         bit  [(`APB_DATA_WIDTH / 8) -1:0]  strb;
     `endif
 
-endinterface //master_if
+endinterface //slave_if
+
+
+typedef virtual slave_if  VTSB_SLAVE_IF;
 
 
 `endif

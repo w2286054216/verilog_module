@@ -39,6 +39,8 @@ interface master_if;
 
 endinterface //master_if
 
+typedef virtual master_if  VTSB_MASTER_IF;
+
 
 `endif
 

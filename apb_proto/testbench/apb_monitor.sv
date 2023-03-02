@@ -91,6 +91,7 @@ task  apb_monitor::master_collect_pkt(apb_transaction tr);
     if ( !vif.addr && !vif.sel  && !vif.wdata  && !vif.write  && !vif.other_error )
         return;
 
+    @(m_vif.clk);
     tr.addr    =  m_vif.addr;
     tr.write   =  m_vif.write;
     tr.wdata   =  m_vif.write? m_vif.wdata: 0;
@@ -107,6 +108,7 @@ task  apb_monitor::master_collect_pkt(apb_transaction tr);
         return;
     
     wait(m_vif.ready == 1);
+    @(m_vif.clk);
     tr.rdata    =   !m_vif.write  && !m_vif.master_error ? m_vif.rdata:  0;
     tr.error    =   m_vif.master_error || m_vif.master_error;
 
@@ -120,6 +122,7 @@ task  apb_monitor::slave_collect_pkt(apb_transaction tr);
     slave_tr  =  new("slave_tr");
 
     wait(s_vif.sel == 1);
+    @(s_vif.clk);
     assert (slave_tr.randomize());
     
     tr.addr    =  s_vif.addr;
