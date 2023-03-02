@@ -109,7 +109,7 @@ always @(*) begin
             next_state[STATE_RST]:begin
                 if (!other_sel_in)
                     next_state[STATE_RST]     =   1'd1;
-                else if ( other_error_out )
+                else if ( other_error_in )
                     next_state[STATE_ERROR]   =   1'd1;
                 else
                     next_state[STATE_SETUP]   =   1'd1;
