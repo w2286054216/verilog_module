@@ -51,6 +51,23 @@ interface master_if;
 
     endclocking
 
+    clocking  cbm  @(posedge clk);
+        input   master_error, ready, rdata , 
+                addr, other_error,  sel, wdata, 
+        
+                `ifdef  APB_PROT
+                    prot;
+                `endif
+                `ifdef  APB_WSTRB
+                    strb;
+                `endif
+        
+                write;
+
+    endclocking
+
+
+
 
 
 
