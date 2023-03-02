@@ -80,7 +80,7 @@ function  void  apb_driver::setup(master_transaction tr);
     if (tr.other_error == 1)
         vif.cb.other_error   <=   1;
     else if (tr.other_error)
-        vif.cb.other_error   <=  #(tr.other_error - 1) 1;
+        vif.other_error   <= #(tr.other_error - 1)   1;
     else
         vif.cb.other_error   <=   0;
 
@@ -112,6 +112,8 @@ task  apb_driver::drive_one_pkt(master_transaction tr);
     setup(tr);
 
     wait(vif.cb.ready == 1'd1);
+
+    vif.cb.sel   <=  0;
 
     repeat(6)  @(vif.cb);
 

@@ -36,41 +36,6 @@ interface master_if;
     `endif
 
 
-    clocking  cb  @(posedge clk);
-        input   master_error, ready, rdata;
-        output  addr, other_error,  sel, wdata, 
-        
-                `ifdef  APB_PROT
-                    prot;
-                `endif
-                `ifdef  APB_WSTRB
-                    strb;
-                `endif
-        
-                write;
-
-    endclocking
-
-    clocking  cbm  @(posedge clk);
-        input   master_error, ready, rdata , 
-                addr, other_error,  sel, wdata, 
-        
-                `ifdef  APB_PROT
-                    prot;
-                `endif
-                `ifdef  APB_WSTRB
-                    strb;
-                `endif
-        
-                write;
-
-    endclocking
-
-
-
-
-
-
 endinterface //master_if
 
 typedef virtual master_if  VTSB_MASTER_IF;
