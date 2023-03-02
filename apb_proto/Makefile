@@ -13,8 +13,8 @@ SOPT = +ntb_solver_mode=1 -l simv.log
 
 
 simv.vdb:	simv
-	./simv ${SOPT} +ntb_random_seed=19  +UVM_PHASE_TRACE
-	./simv ${SOPT} +ntb_random_seed_automatic  +UVM_PHASE_TRACE
+	./simv ${SOPT} +ntb_random_seed=19
+	./simv ${SOPT} +ntb_random_seed_automatic
 
 simv:
 	find ${RTL_DIR} -name "*.v" > rtl_filelist.f

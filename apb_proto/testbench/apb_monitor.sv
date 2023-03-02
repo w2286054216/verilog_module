@@ -138,9 +138,9 @@ task  apb_monitor::slave_collect_pkt(apb_transaction tr);
 
 
     if (slave_tr.ready) begin
-          s_vif.rdata  <= #(slave_tr.ready)  s_vif.cb.write?
+          s_vif.rdata  <= repeat(slave_tr.ready) @(posedge s_vif.clk) s_vif.cb.write?
                                       0: slave_tr.rdata;
-          s_vif.ready  <= #(slave_tr.ready)  1;
+          s_vif.ready  <= repeat(slave_tr.ready)  @(posedge s_vif.clk)  1;
     end
     else begin
         s_vif.cb.rdata           <=   s_vif.cb.write? slave_tr.rdata: 0;
@@ -150,7 +150,7 @@ task  apb_monitor::slave_collect_pkt(apb_transaction tr);
     if (slave_tr.other_error == 1)
         s_vif.cb.other_error     <=  1;
     else if (slave_tr.other_error)
-        s_vif.other_error <= #(slave_tr.other_error -1)  1;
+        s_vif.other_error <= repeat(slave_tr.other_error -1) @(posedge s_vif.clk) 1;
     else
         s_vif.cb.other_error     <=  0;
     
