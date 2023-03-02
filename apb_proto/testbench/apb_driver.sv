@@ -109,11 +109,15 @@ endfunction
 
 task  apb_driver::drive_one_pkt(master_transaction tr);
 
-    @(posedge vif.clk);
+    while(!vif.rstn)
+        @(posedge vif.clk);
+
+    repeat(4)   @(posedge vif.clk);
+
     setup(tr);
 
-    wait(vif.ready == 1'd1);
 
+    wait(vif.ready == 1'd1);
     @(posedge vif.clk);
     vif.sel   <=  0;
 

@@ -16,7 +16,7 @@
 
 `include "definition.sv"
 
-interface master_if;
+interface master_if(input rstn);
     
     bit  [`APB_ADDR_WIDTH-1:0]  addr;
     bit  clk;

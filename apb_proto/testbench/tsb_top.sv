@@ -40,8 +40,8 @@ module top;
   end
 
 
-    master_if  vmaster_if ();
-    slave_if  vslave_if();
+    master_if  vmaster_if (rstn);
+    slave_if  vslave_if (rstn);
     apb_if  top_apb_bus( .clk(clk), .rstn(rstn));
 
     apb_master_if #( `APB_DATA_WIDTH, ` APB_ADDR_WIDTH) apb_bus_master(

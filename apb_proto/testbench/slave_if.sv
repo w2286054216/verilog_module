@@ -16,7 +16,7 @@
 
 `include "definition.sv"
 
-interface slave_if;
+interface slave_if(input rstn);
     
     bit  [`APB_ADDR_WIDTH-1:0]  addr;
     bit  clk;
