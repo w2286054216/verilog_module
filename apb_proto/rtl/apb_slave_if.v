@@ -108,14 +108,14 @@ always @(*) begin
         next_state[STATE_RST]  =  1'd1;
     else begin
         case (1'd1)
-            next_state[STATE_RST]:begin
+            apb_state[STATE_RST]:begin
                     if (!apb_psel_in || apb_penable_in)
                         next_state[STATE_RST]    =  1'd1;
                     else
                         next_state[STATE_SETUP]  =  1'd1;
             end
 
-            next_state[STATE_SETUP]:begin
+            apb_state[STATE_SETUP]:begin
                 if ( !apb_penable_in || !apb_psel_in  || other_error_in || signal_changed )
                     next_state[STATE_ERROR]  =  1'd1;
                 else  if (other_ready_in)
@@ -124,7 +124,7 @@ always @(*) begin
                     next_state[STATE_WAIT]   =  1'd1;
             end
 
-            next_state[STATE_WAIT]:begin
+            apb_state[STATE_WAIT]:begin
                 if ( !apb_penable_in || !apb_psel_in || other_error_in || signal_changed || wait_timeout )
                     next_state[STATE_ERROR]  =  1'd1;
                 else  if (other_ready_in)
