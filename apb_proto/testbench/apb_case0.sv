@@ -63,7 +63,7 @@ function void apb_case0::build_phase(uvm_phase phase);
    super.build_phase(phase);
 
    uvm_config_db#(uvm_object_wrapper)::set(this, 
-                                           "env.i_agt.sqr.main_phase", 
+                                           "env.m_agt.sqr.main_phase", 
                                            "default_sequence", 
                                            case0_sequence::type_id::get());
 endfunction
