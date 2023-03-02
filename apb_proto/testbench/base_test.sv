@@ -43,9 +43,11 @@ endfunction
 function void base_test::report_phase(uvm_phase phase);
    uvm_report_server server;
    int err_num;
+   uvm_coreservice_t cs;
    super.report_phase(phase);
 
-   server = get_report_server();
+   cs = uvm_coreservice_t::get();
+   server = cs.get_report_server();
    err_num = server.get_severity_count(UVM_ERROR);
 
    if (err_num != 0) begin

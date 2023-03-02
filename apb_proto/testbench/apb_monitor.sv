@@ -95,7 +95,7 @@ task  apb_monitor::master_collect_pkt(apb_transaction tr);
     tr.addr    =  m_vif.cbm.addr;
     tr.write   =  m_vif.cbm.write;
     tr.wdata   =  m_vif.cbm.write? m_vif.cbm.wdata: 0;
-    tr.vaild   =  !m_vif.cbm.sel || m_vif.cbm.other_error ?  0:  1;
+    tr.valid   =  !m_vif.cbm.sel || m_vif.cbm.other_error ?  0:  1;
 
     `ifdef  APB_WSTRB
         tr.strb  =  m_vif.cbm.strb;
@@ -161,7 +161,7 @@ task  apb_monitor::slave_collect_pkt(apb_transaction tr);
         end
     end
     
-    @( posedge vif.clk);
+    @( posedge s_vif.cb);
 
     if (tr.error) begin
         tr.rdata    =   0;

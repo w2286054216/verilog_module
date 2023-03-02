@@ -32,6 +32,7 @@ class case0_sequence extends uvm_sequence #(master_transaction);
    endfunction 
    
    virtual task body();
+      uvm_phase starting_phase = get_starting_phase();
       if(starting_phase != null) 
          starting_phase.raise_objection(this);
       repeat (`TEST_APB_REQ) begin
