@@ -64,7 +64,7 @@ endtask
 
 function  void  apb_driver::setup(master_transaction tr);
 
-    @(posedge vif.clk);
+
     vif.addr    <=  tr.addr;
     vif.sel     <=  tr.sel;
     vif.wdata   <=  tr.write ? tr.wdata: 0;
@@ -82,7 +82,7 @@ function  void  apb_driver::setup(master_transaction tr);
     else if (tr.other_error)
         vif.other_error   <=  repeat(tr.other_error - 1)  @(posedge vif.clk)  1;
     else
-        vif.cb.other_error   <=   0;
+        vif.other_error   <=   0;
 
 endfunction
 
@@ -109,6 +109,7 @@ endfunction
 
 task  apb_driver::drive_one_pkt(master_transaction tr);
 
+    @(posedge vif.clk);
     setup(tr);
 
     wait(vif.ready == 1'd1);
