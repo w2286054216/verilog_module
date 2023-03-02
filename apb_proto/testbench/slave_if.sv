@@ -35,24 +35,7 @@ interface slave_if;
         bit  [(`APB_DATA_WIDTH / 8) -1:0]  strb;
     `endif
 
-    clocking cb @(negedge clk);
-        input  addr, slave_error,  
-                `ifdef  APB_PROT
-                    prot, 
-                `endif
-                `ifdef  APB_WSTRB
-                    strb, 
-                `endif
-                sel, wdata, write;
-        output  other_error, rdata, ready;
-    endclocking
-
-    modport TSB_SLAVE_IF (clocking cb, input clk);
-
-
 endinterface //master_if
-
-typedef virtual slave_if.TSB_SLAVE_IF  VTSB_SLAVE_IF;
 
 
 `endif
