@@ -35,6 +35,25 @@ interface slave_if;
         bit  [(`APB_DATA_WIDTH / 8) -1:0]  strb;
     `endif
 
+
+    clocking  cb  @(posedge clk);
+    
+        output   other_error, ready, rdata;
+        input    addr, slave_error,  sel, wdata, 
+        
+                `ifdef  APB_PROT
+                    prot;
+                `endif
+                `ifdef  APB_WSTRB
+                    strb;
+                `endif
+        
+                write;
+
+    endclocking
+
+
+
 endinterface //slave_if
 
 
