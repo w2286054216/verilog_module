@@ -183,8 +183,8 @@ always @( posedge  apb_clk_in  or  negedge  apb_rstn_in ) begin
 
     end
     else begin
-        case (apb_state)
-            STATE_RST:begin
+        case (1'd1)
+            apb_state[STATE_RST]:begin
 
                 `ifdef  APB_SLVERR
                     apb_slverr_out    <=  0;
@@ -209,7 +209,7 @@ always @( posedge  apb_clk_in  or  negedge  apb_rstn_in ) begin
                 
             end
 
-            STATE_SETUP:begin
+            apb_state[STATE_SETUP]:begin
                 
                 other_addr_out      <=   apb_addr_in;
 
@@ -229,9 +229,9 @@ always @( posedge  apb_clk_in  or  negedge  apb_rstn_in ) begin
 
             end
 
-            STATE_WAIT: wait_counter   <=  (wait_counter + 1);
+            apb_state[STATE_WAIT]: wait_counter   <=  (wait_counter + 1);
 
-            STATE_TRANS: begin
+            apb_state[STATE_TRANS]: begin
 
                 `ifdef  APB_SLVERR
                     other_error_out     <=  apb_slverr_in  ||  other_error_in;
@@ -244,7 +244,7 @@ always @( posedge  apb_clk_in  or  negedge  apb_rstn_in ) begin
                 apb_ready_out       <=  1;
             end
 
-            STATE_ERROR:begin
+            apb_state[STATE_ERROR]:begin
                 `ifdef  APB_SLVERR
                     apb_slverr_out       <=  1;
                 `endif
