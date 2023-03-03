@@ -76,9 +76,9 @@ task  apb_scoreboard::main_phase(uvm_phase phase);
                 end
                 else begin
                     `uvm_error("apb_scoreboard", "Compare FAILED");
-                    $display("the expect pkt is");
+                    $display("the slave pkt is");
                     tmp_tran.print();
-                    $display("the actual pkt is");
+                    $display("the master pkt is");
                     master_recv.print();
                 end
             end
