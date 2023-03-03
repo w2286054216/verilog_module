@@ -37,7 +37,9 @@ class  master_transaction  extends  uvm_sequence_item;
     `endif
 
 
-    constraint addr_range { addr[`APB_ADDR_WIDTH-1:12] == 20'h20380;}
+    constraint addr_range { addr[15:0] == 16'h2038;}
+    constraint wdata_range { wdata[15:0] == 16'ha100;}
+
 
     `uvm_object_utils_begin(master_transaction)
         `uvm_field_int(addr, UVM_ALL_ON)

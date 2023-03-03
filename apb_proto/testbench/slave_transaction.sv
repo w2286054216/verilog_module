@@ -28,7 +28,7 @@ class  slave_transaction  extends  uvm_sequence_item;
     rand bit [`APB_DATA_WIDTH-1:0] rdata;
     rand bit [1:0] ready;   
 
-    constraint rdata_range { rdata[`APB_ADDR_WIDTH-1:12] == 16'h8030;}
+    constraint rdata_range { rdata[15: 0] == 16'h8030;}
     constraint error_ready { other_error <= (ready + 1) ;}
 
 
