@@ -14,7 +14,7 @@
 module  apb_slave_if #( parameter   APB_DATA_WIDTH    = 32,
                         parameter   APB_ADDR_WIDTH    = 32,
                         parameter   TIMEOUT_CYCLE     =  6,
-                        localparam  OTHER_STRB_WIDTH  = APB_DATA_WIDTH / 8
+                        localparam  OTHER_STRB_WIDTH  = (APB_DATA_WIDTH / 8)
                         )
 (
     input  apb_clk_in,
