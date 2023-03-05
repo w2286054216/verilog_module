@@ -87,13 +87,16 @@ endtask
 task  apb_monitor::master_collect_pkt(apb_transaction tr);
 
 
-    @(m_vif.sel or m_vif.addr or m_vif.write or m_vif.wdata );
-
-
-    @(posedge  m_vif.clk);
-    if ( !m_vif.addr && !m_vif.sel  && !m_vif.wdata  && 
+    while(1) begin
+        @(m_vif.sel or m_vif.addr or m_vif.write or m_vif.wdata );
+        @(posedge  m_vif.clk);
+        
+        if ( !m_vif.addr && !m_vif.sel  && !m_vif.wdata  && 
             !m_vif.write  && !m_vif.other_error )
-        return;
+            continue;
+        else
+            break;
+    end
 
     tr.addr    =  m_vif.addr;
     tr.write   =  m_vif.write;
