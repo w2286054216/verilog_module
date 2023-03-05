@@ -173,7 +173,7 @@ task  apb_monitor::slave_collect_pkt(apb_transaction tr);
     
     for (int i = 0; i < slave_tr.ready; i++) begin
         @(posedge s_vif.clk);
-        if (s_vif.slave_error || s_vif.other_error || !s_vif.sel) begin
+        if (s_vif.slave_error || s_vif.other_error) begin
             tr.error  = 1;
             break;
         end
