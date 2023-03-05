@@ -83,7 +83,7 @@ task  apb_scoreboard::main_phase(uvm_phase phase);
                 end
             end
             else begin
-                `uvm_error("apb_scoreboard", "Received from DUT, while Expect Queue is empty");
+                `uvm_error("apb_scoreboard", "Received from DUT, while slave queue is empty");
                 $display("the unexpected pkt is");
                 master_recv.print();
             end

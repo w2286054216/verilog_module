@@ -127,7 +127,7 @@ task  apb_driver::drive_one_pkt(master_transaction tr);
     @(posedge vif.clk);
     vif.sel   <=  0;
 
-    repeat(6)  @(posedge vif.clk);
+    repeat(10)  @(posedge vif.clk);
     reset_if();
 
 endtask
