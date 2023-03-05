@@ -133,6 +133,12 @@ task  apb_monitor::slave_collect_pkt(apb_transaction tr);
     @(posedge  s_vif.clk);
     
     assert (slave_tr.randomize());
+
+    `ifndef  APB_SLVERR
+        slave_tr.other_error = 0;
+    `endif
+
+
     
     tr.addr    =  s_vif.addr;
     tr.write   =  s_vif.write;
@@ -145,6 +151,7 @@ task  apb_monitor::slave_collect_pkt(apb_transaction tr);
     `ifdef  APB_PROT
         tr.prot  =  s_vif.prot;
     `endif
+
 
 
     if (slave_tr.ready) begin
