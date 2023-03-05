@@ -75,7 +75,7 @@ module top;
              .other_ready_out(vmaster_if.ready),
              .other_rdata_out(vmaster_if.rdata),
              .other_sel_in(vmaster_if.sel),
-             .other_wdata_in(vmaster_if.addr),
+             .other_wdata_in(vmaster_if.wdata),
              .other_write_in(vmaster_if.write)
     );
 
