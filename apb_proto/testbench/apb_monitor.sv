@@ -131,6 +131,7 @@ task  apb_monitor::slave_collect_pkt(apb_transaction tr);
 
     wait(s_vif.sel == 1'd1);
     @(posedge  s_vif.clk);
+    
     assert (slave_tr.randomize());
     
     tr.addr    =  s_vif.addr;
@@ -180,6 +181,8 @@ task  apb_monitor::slave_collect_pkt(apb_transaction tr);
     s_vif.other_error     <=   0;
     s_vif.rdata           <=   0;
     s_vif.ready           <=   0;
+
+    repeat(2)  @( posedge s_vif.clk);
 
 
 endtask
