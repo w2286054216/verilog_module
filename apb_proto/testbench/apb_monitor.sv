@@ -117,7 +117,7 @@ task  apb_monitor::master_collect_pkt(apb_transaction tr);
     @(posedge  m_vif.clk);
 
     tr.rdata    =   !m_vif.write  && !m_vif.master_error ? m_vif.rdata:  0;
-    tr.error    =   m_vif.master_error || m_vif.master_error;
+    tr.error    =   (m_vif.other_error && !m_vif.ready) || m_vif.master_error;
 
     repeat(6) @(posedge  m_vif.clk);
 
