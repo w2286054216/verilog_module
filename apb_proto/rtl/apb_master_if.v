@@ -230,14 +230,14 @@ always @(posedge apb_clk_in or negedge apb_rstn_in ) begin
 
                 apb_state[STATE_TRANS]:begin
                     apb_psel_out            <=  0;
-                    apb_penable_out         <=  0;
+                    apb_penable_out         <=  1;
                     other_ready_out         <=  1;
 
                     `ifdef  APB_SLVERR
-                        other_error_out  <=  apb_slverr_in || other_error_in;
-                        apb_slverr_out   <=  apb_slverr_in || other_error_in;
+                        other_error_out  <=  apb_slverr_in;
+                        apb_slverr_out   <=  0;
                     `else
-                        other_error_out  <=  other_error_in;
+                        other_error_out  <=  0;
                     `endif
 
                     other_rdata_out      <=  apb_write_out? 0: apb_rdata_in;
