@@ -86,7 +86,7 @@ endtask
 
 task  apb_monitor::master_collect_pkt(apb_transaction tr);
 
-    int unsigned error_cycle = 0,  wait_cycle = 0;
+    int unsigned error_cycle = 0;
 
     while(1) begin
         @(m_vif.sel or m_vif.addr or m_vif.write or m_vif.wdata );
@@ -118,11 +118,10 @@ task  apb_monitor::master_collect_pkt(apb_transaction tr);
         if (m_vif.other_error) error_cycle++;
         if (m_vif.ready) break;
         @(posedge  m_vif.clk);
-        wait_cycle++;
     end
 
     tr.rdata    =   !m_vif.write  && !m_vif.master_error ? m_vif.rdata:  0;
-    tr.error    =   (error_cycle != wait_cycle) || m_vif.master_error;
+    tr.error    =   m_vif.master_error;
 
     repeat(6) @(posedge  m_vif.clk);
 
