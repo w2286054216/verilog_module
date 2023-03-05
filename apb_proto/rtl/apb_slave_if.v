@@ -236,12 +236,17 @@ always @( posedge  apb_clk_in  or  negedge  apb_rstn_in ) begin
                 `ifdef  APB_SLVERR
                     other_error_out     <=  apb_slverr_in  ||  other_error_in;
                     apb_slverr_out      <=  apb_slverr_in  ||  other_error_in;
+                    apb_rdata_out       <=  other_write_out || apb_slverr_in  ||  other_error_in ?
+                                                    0: other_rdata_in;
                 `else
                     other_error_out     <=  other_error_in;
+                    apb_rdata_out       <=  other_write_out  ||  other_error_in ?
+                                                    0: other_rdata_in;
                 `endif
                 
-                apb_rdata_out       <=  other_write_out? 0: other_rdata_in;
+
                 apb_ready_out       <=  1;
+                other_sel_out       <=  0;
             end
 
             apb_state[STATE_ERROR]:begin
@@ -250,7 +255,8 @@ always @( posedge  apb_clk_in  or  negedge  apb_rstn_in ) begin
                 `endif
                 apb_ready_out        <=  1;
                 other_error_out      <=  1;
-
+                other_sel_out        <=  0;
+                
             end
 
             default:;
