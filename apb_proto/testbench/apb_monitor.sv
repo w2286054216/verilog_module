@@ -145,6 +145,7 @@ task  apb_monitor::slave_collect_pkt(apb_transaction tr);
 
     
     tr.addr    =  s_vif.addr;
+    tr.rdata   =  s_vif.write? 0: slave_tr.rdata;
     tr.write   =  s_vif.write;
     tr.wdata   =  s_vif.write? s_vif.wdata: 0;
     tr.valid   =  1;
