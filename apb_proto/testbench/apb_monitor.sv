@@ -164,7 +164,7 @@ task  apb_monitor::slave_collect_pkt(apb_transaction tr);
           s_vif.ready  <= repeat(slave_tr.ready)  @(posedge s_vif.clk)  1;
     end
     else begin
-        s_vif.rdata           <=   s_vif.write? slave_tr.rdata: 0;
+        s_vif.rdata           <=   s_vif.write? 0:slave_tr.rdata;
         s_vif.ready           <=   1;
     end
 
