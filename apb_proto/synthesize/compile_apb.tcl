@@ -104,15 +104,16 @@ check_design
 report_constraint -all_violators
 
 #保存综合后的网表
-set filename [format "%s%s"  $my_toplevel ".vh"]
+set out_dir  [format "%s%s"  pwd "/result"].
+set filename [format "%s%s%s"  $out_dir $my_toplevel ".vh"]
 write_file -f verilog -hier -output $filename
 
 #保存反标文件
-set filename [format "%s%s"  $my_toplevel ".sdf"]
+set filename [format "%s%s%s" $out_dir $my_toplevel ".sdf"]
 write_sdf $filename
 
 #保存整个工程文件
-set filename [format "%s%s"  $my_toplevel ".ddc"]
+set filename [format "%s%s%s" $out_dir $my_toplevel ".ddc"]
 write_file -f ddc -hier -output  $filename
 
 #产生报告
