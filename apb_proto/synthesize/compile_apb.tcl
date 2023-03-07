@@ -55,13 +55,11 @@ set_ultra_optimization -force
 #/**************************************************/
 set my_period [expr 1000 / $my_clk_freq_MHz]
 if {  $clks != [list] } {
-   set clk_name [get_ports  *_clk_in ]
-   create_clock -period $my_period  -name $clk_name
+   set  clk_name  apb_clk_in
 } else {
-   set clk_name vclk
-   create_clock -period $my_period -name  $clk_name
+   set  clk_name  {vclk}
 }
-
+create_clock -period $my_period  -name  $clk_name
 #时钟网络
 set_dont_touch_network $clks
 set_drive  0   [get_ports  *_clk_in ]       ;#时钟端口驱动为无限大
@@ -73,8 +71,8 @@ set_drive  0  $rstns    ;#复位端口驱动为无限大
 set_ideal_network  $rstns      ;#复位网络为理想网络
 
 #时延
-set_input_delay $my_input_delay_ns -clock $clk_name [remove_from_collection [all_inputs] $clks]
-set_output_delay $my_output_delay_ns -clock $clk_name [all_outputs]
+set_input_delay $my_input_delay_ns -clock $clk_name  [remove_from_collection  [all_inputs] [get_ports *_clk_in]]
+set_output_delay $my_output_delay_ns -clock $clk_name  [remove_from_collection [all_outputs] [get_ports *_clk_out]]
 
 #/**************************************************/
 #/*                面积约束                       */
@@ -85,13 +83,10 @@ set_max_area     0     ;#面积尽可能小
 
 
 #/**************************************************/
-#/*                设计综合                       */
+#/*                设计编译                       */
 #/**************************************************/
 link
 uniquify
-
-
-
 
 
 set_driving_cell  -lib_cell INVX1  [all_inputs]
@@ -104,8 +99,9 @@ compile -incremental_mapping -map_effort medium
 check_design
 report_constraint -all_violators
 
+
 #保存综合后的网表
-set out_dir  [format "%s%s"  $pwd "/result"].
+set out_dir  [format "%s"   "./result/"].
 set filename [format "%s%s%s"  $out_dir $my_toplevel ".vh"]
 write_file -f verilog -hier -output $filename
 
@@ -118,10 +114,10 @@ set filename [format "%s%s%s" $out_dir $my_toplevel ".ddc"]
 write_file -f ddc -hier -output  $filename
 
 #产生报告
-redirect timing.rep { report_timing }
-redirect cell.rep { report_cell }
-redirect power.rep { report_power }
-redirect constraint.rep { report_constraint }
+redirect  [format "%s%s%s" "./report/" $my_toplevel "_timing.rep"] { report_timing }
+redirect  [format "%s%s%s" "./report/" $my_toplevel "_cell.rep"]   { report_cell }
+redirect  [format "%s%s%s" "./report/" $my_toplevel "_power.rep"]  { report_power }
+redirect  [format "%s%s%s" "./report/" $my_toplevel "_const.rep"]  { report_constraint }
 
 
 quit
