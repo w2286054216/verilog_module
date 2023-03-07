@@ -5,7 +5,7 @@
 #/**************************************************/
 
 #设计文件
-set my_verilog_files [ list apb_master_if.v  apb_slave_if.v ]
+set my_verilog_files [ list apb_master_if.v  apb_slave_if.v]
 
 #顶层模块
 set my_toplevel apb_master_if
@@ -19,14 +19,19 @@ set my_input_delay_ns 0.1
 #寄存器输出时延
 set my_output_delay_ns 0.1
 
+set_option  top   $my_toplevel
+current_design  $my_toplevel
+analyze -f  verilog $my_verilog_files
+elaborate  $my_toplevel
+
 
 #/**************************************************/
 #/*             设置io引脚                         */
 #/**************************************************/
-set  clks  [get_ports clk]
-set  rstns [get_ports rstn]
-set my_inputs   [get_ports in]
-set my_outputs  [get_ports out]
+set  clks  [get_ports  *_clk_* ]
+set  rstns [get_ports *_rstn_* ]
+set my_inputs   [get_ports *_in]
+set my_outputs  [get_ports *_out]
 
 
 
@@ -50,21 +55,21 @@ set_ultra_optimization -force
 #/**************************************************/
 set my_period [expr 1000 / $my_clk_freq_MHz]
 if {  $clks != [list] } {
-   set clk_name $my_clock_pin
-   create_clock -period $my_period $clk_name
+   set clk_name [get_ports  *_clk_in ]
+   create_clock -period $my_period  -name $clk_name
 } else {
    set clk_name vclk
-   create_clock -period $my_period -name $clk_name
+   create_clock -period $my_period -name  $clk_name
 }
 
 #时钟网络
-set dont_touch_ network $clks
-set_drive  0 $clks        ;#时钟端口驱动为无限大
+set_dont_touch_network $clks
+set_drive  0   [get_ports  *_clk_in ]       ;#时钟端口驱动为无限大
 set_ideal_network  $clks     ;#时钟网络为理想网络
 
 #复位网络
-set dont_touch_ network $rstns
-set_drive  0 $rstns    ;#复位端口驱动为无限大
+set_dont_touch_network $rstns
+set_drive  0  $rstns    ;#复位端口驱动为无限大
 set_ideal_network  $rstns      ;#复位网络为理想网络
 
 #时延
@@ -82,10 +87,6 @@ set_max_area     0     ;#面积尽可能小
 #/**************************************************/
 #/*                设计综合                       */
 #/**************************************************/
-analyze -f verilog $my_verilog_files
-current_design $my_toplevel
-elaborate $my_toplevel
-
 link
 uniquify
 
@@ -104,7 +105,7 @@ check_design
 report_constraint -all_violators
 
 #保存综合后的网表
-set out_dir  [format "%s%s"  pwd "/result"].
+set out_dir  [format "%s%s"  $pwd "/result"].
 set filename [format "%s%s%s"  $out_dir $my_toplevel ".vh"]
 write_file -f verilog -hier -output $filename
 
