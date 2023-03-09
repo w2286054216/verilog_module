@@ -10,46 +10,52 @@
 * Version:         0.1
 ************************************************************************************************************/
 
-module ahb_master_if (
-
-    ahb_addr_out,
-    ahb_burst_out,
-    ahb_clk_in,
-    ahb_prot_out,
-    ahb_rstn_in,
-    ahb_size_out,
-    ahb_strb_out,
-    ahb_trans_out,
-    ahb_wdata_out,
-    ahb_write_out,
-
-    multi_rdata_in,
-    multi_ready_in,    
-    multi_resp_in,
+module ahb_master_if #(
+                parameter  AHB_ADDR_WIDTH  =  32,
+                parameter  AHB_DATA_WIDTH  =  32
+                )
+(
 
 
-    other_addr_in,
-    other_burst_in,
-    other_clk_out,
-    other_error_in,
-    other_error_out,
-    other_prot_in,
-    other_rdata_out,
-    other_delay_in,
-    other_ready_out,
-    other_valid_in,
-    other_strb_in,
-    other_size_in,
-    other_end_in,
-    other_wdata_in,  
-    other_write_in
+    input  ahb_clk_in,
+    input  ahb_rstn_in,
+
+    /*-----------ahb bus signal-----------*/
+    output  reg  [AHB_ADDR_WIDTH-1: 0]  ahb_addr_out,
+    output  reg  ahb_burst_out,
+    output  reg  [ 3:0 ] ahb_prot_out,
+    input   [AHB_DATA_WIDTH-1: 0]  ahb_rdata_in,
+    input   ahb_ready_in,
+    input   ahb_resp_in,
+    output  reg  ahb_size_out,
+    output  reg  [(AHB_DATA_WIDTH /8) -1:0]  ahb_strb_out,
+    output  reg  ahb_trans_out,
+    output  reg  [AHB_DATA_WIDTH-1: 0] ahb_wdata_out,
+    output  reg  ahb_write_out,
+
+    /*-----------other module signal----------------*/
+    input   [AHB_ADDR_WIDTH -1: 0]  other_addr_in,
+    input   other_burst_in,
+    output  other_busy_out,
+    output  other_clk_out,
+    input   other_delay_in,
+    input   other_error_in,    
+    output  reg  other_error_out,
+    input   other_end_in,
+    input   [3:0]  other_prot_in,
+    output  reg  [AHB_DATA_WIDTH-1: 0]  other_rdata_out,
+    output  reg  other_ready_out,
+    input   other_size_in,
+    input   [(AHB_DATA_WIDTH /8) -1:0]  other_strb_in,
+    input   other_valid_in,    
+    input   [AHB_DATA_WIDTH-1: 0]  other_wdata_in,
+    input   other_write_in
 
 );
 
 
 
-parameter  AHB_ADDR_WIDTH  =  32;
-parameter  AHB_DATA_WIDTH  = 32;
+
 
 
 
@@ -80,38 +86,6 @@ localparam  STATE_TRANS_NONSEQ      =  3'd3;
 localparam  STATE_TRANS_SEQ         =  3'd4;
 localparam  STATE_ERROR             =  3'd5;
 
-
-
-input  ahb_clk_in;
-input  ahb_rstn_in;
-input   multi_ready_in;
-input [AHB_DATA_WIDTH-1: 0]  multi_rdata_in;
-input   multi_resp_in;
-input [AHB_ADDR_WIDTH -1: 0]  other_addr_in;
-input   other_burst_in;
-input  other_delay_in;
-input  other_error_in;
-input  other_end_in;
-input  [3:0]  other_prot_in;
-input   other_valid_in;
-input   other_size_in;
-input  [(AHB_DATA_WIDTH /8) -1:0]  other_strb_in;
-input  other_write_in;
-input  [AHB_DATA_WIDTH-1: 0]  other_wdata_in;
-
-
-output  [AHB_ADDR_WIDTH-1: 0]  ahb_addr_out;
-output  ahb_burst_out;
-output  [ 3:0 ] ahb_prot_out;
-output  ahb_size_out;
-output  [(AHB_DATA_WIDTH /8) -1:0]  ahb_strb_out;
-output  ahb_trans_out;
-output [AHB_DATA_WIDTH-1: 0] ahb_wdata_out;
-output  ahb_write_out;
-output  other_clk_out;
-output  other_error_out;
-output  other_ready_out;
-output [AHB_DATA_WIDTH-1: 0]  other_rdata_out;
 
 
 reg  [2:0]  ahb_state;
