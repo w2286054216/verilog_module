@@ -55,10 +55,6 @@ module ahb_master_if #(
 
 
 
-
-
-
-
 /*master burst type*/
 localparam  AHB_BURST_SINGLE   =  3'd0;
 localparam  AHB_BURST_INCR     =  3'd1;
@@ -79,12 +75,12 @@ localparam  AHB_TRANS_SEQ     = 2'd3;
 
 
 /*ahb master state*/
-localparam  STATE_RST               =  3'd0;
-localparam  STATE_TRANS_IDLE        =  3'd1;
-localparam  STATE_TRANS_BUSY        =  3'd2;
-localparam  STATE_TRANS_NONSEQ      =  3'd3;
-localparam  STATE_TRANS_SEQ         =  3'd4;
-localparam  STATE_ERROR             =  3'd5;
+localparam  STATE_RST               =  0;
+localparam  STATE_TRANS_IDLE        =  1;
+localparam  STATE_TRANS_BUSY        =  2;
+localparam  STATE_TRANS_NONSEQ      =  3;
+localparam  STATE_TRANS_SEQ         =  4;
+localparam  STATE_ERROR             =  5;
 
 
 
@@ -97,18 +93,8 @@ reg  last_write;
 
 
 
-reg [AHB_ADDR_WIDTH -1:0] ahb_addr_out;
-reg [2:0] ahb_burst_out;
-reg [2:0] ahb_size_out;
-reg [(AHB_DATA_WIDTH /8)-1:0] ahb_strb_out;
-reg [1:0] ahb_trans_out;
-reg [AHB_DATA_WIDTH -1:0]  ahb_wdata_out;
-reg ahb_write_out;
 reg [AHB_ADDR_WIDTH - 1: 0] burst_addr;
 reg [2:0] other_burst;
-reg other_error_out;
-reg [AHB_DATA_WIDTH -1:0]  other_rdata_out;
-reg other_ready_out;
 
 
 
@@ -119,6 +105,23 @@ wire  size_valid;
 
 
 ///////////////////////////Combinational logic//////////////////////////////////////////////////
+
+
+function  [AHB_ADDR_WIDTH -1: 0] get_next_addr(input [AHB_ADDR_WIDTH -1: 0] cur_addr, input [2:0] burst, input [4:0] burst_len);
+    case(burst)
+        AHB_BURST_SINGLE: get_next_addr = 0;
+        AHB_BURST_INCR: begin
+            if (cu)
+        end
+
+
+    endcase
+    
+endfunction
+
+
+
+
 
 /*get next burst addr*/
 always @(*) begin
