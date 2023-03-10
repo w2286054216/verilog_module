@@ -105,17 +105,33 @@ reg  [3:0]  burst_counter;
 reg  busy_2_seq;
 reg  [1:0]  trans_unready;
 reg  last_write;
+reg  [AHB_ADDR_WIDTH -1: 0]  burst_addr;
+reg  [AHB_ADDR_WIDTH -1: 0]  trans_addr;
 
-
-reg [AHB_ADDR_WIDTH - 1: 0] burst_addr;
 reg [2:0] other_burst;
 
 
+
+wire  addr_changed;
+wire  [AHB_ADDR_WIDTH -1: 0]  addr_next;
+wire  [7:0]  ahb_size_byte;
 wire  addr_valid;
-wire  burst_control_changed;
+wire  burst_changed;
+wire  prot_changed;
+wire  size_changed;
+wire  size_valid;
+wire  [ 7:0 ]  size_byte;
+wire  [ 6:0 ]  size_mask;
+wire  strb_changed;
+wire  trans_changed;
+wire  wrap4_bound;
+wire  wrap8_bound;
+wire  wrap16_bound;
+
+
 wire  cur_burst_incr;
 wire  next_burst_incr;
-wire  size_valid;
+
 
 
 ///////////////////////////Combinational logic//////////////////////////////////////////////////
@@ -126,18 +142,15 @@ always @(*) begin
     if (!ahb_burst_out || !burst_counter)
         burst_addr = 0;
     else if(ahb_burst_out[0])
-        burst_addr = ahb_addr_out + ( 2 << ahb_size_out);
+        burst_addr = ahb_addr_out + ahb_size_byte;
     else begin
         case(ahb_burst_out)
-        AHB_BURST_WRAP4: burst_addr = ( ahb_addr_out + (2 << ahb_size_out)) & (( 2 << ( ahb_size_out + 2) ) - 1)?
-                             ahb_addr_out + ( 2 << ahb_size_out): 
-                             ahb_addr_out - (6 << ahb_size_out);
-        AHB_BURST_WRAP8: burst_addr = ( ahb_addr_out + (2 << ahb_size_out)) & (( 2 << (ahb_size_out + 3) ) - 1)?
-                             ahb_addr_out + ( 2 << ahb_size_out): 
-                             ahb_addr_out -  (14 << ahb_size_out);
-        AHB_BURST_WRAP16: burst_addr = ( ahb_addr_out + (2 << ahb_size_out)) & (( 2 << ( ahb_size_out + 4) ) - 1)?
-                             ahb_addr_out + ( 2 << ahb_size_out): 
-                             ahb_addr_out - ( 30 << ahb_size_out);
+        AHB_BURST_WRAP4: burst_addr   =  !wrap4_bound?  addr_next: 
+                                    ahb_addr_out - (3 << ahb_size_out );
+        AHB_BURST_WRAP8: burst_addr   =  !wrap8_bound?  addr_next: 
+                                    ahb_addr_out -  ( 7 << ahb_size_out );
+        AHB_BURST_WRAP16: burst_addr  =  !wrap16_bound? addr_next:
+                                        ahb_addr_out - ( 30 << ahb_size_out);
         default: burst_addr = 0;
             
         endcase
@@ -355,18 +368,41 @@ always @(posedge ahb_clk_in) begin
 end
 
 
+assign  addr_changed  = ( trans_addr != other_addr_in);
+assign  addr_next  =  ( ahb_addr_out + ahb_size_byte );
+assign  ahb_size_byte  =  ( 1 <<  ahb_size_out);
+assign  addr_valid  =  (( other_addr_in & size_mask ) & size_byte )?  0: 1;
+assign  burst_changed  =  ( other_burst_in  !=  ahb_burst_out);
 
-assign  addr_valid  =  ((other_addr_in & (2 << other_size_in) - 1) & ( 2 << other_size_in))?  0: 1 ;
+`ifdef  AHB_PROT
+    assign  prot_changed  =  ( other_prot_in  != ahb_prot_out );
+`else
+    assign  prot_changed  =  0;
+`endif
+`ifdef  AHB_WSTRB
+    assign  strb_changed  =  ( other_strb_in  != ahb_strb_out );
+`else
+    assign  strb_changed  =  0;
+`endif
 
 
-assign  burst_control_changed = (other_burst_in != ahb_burst_out) || (other_size_in != ahb_size_out) ||
-                              (other_prot_in != ahb_prot_out)? 1'd1: 1'd0;
+assign  size_byte   =  ( 1 << other_size_in );
+assign  size_changed  =  ( other_size_in  !=  ahb_size_out );
+assign  size_mask   =  ( size_byte  - 1 );
+assign  size_valid  =  ( size_byte  << 3 ) > AHB_DATA_WIDTH ? 0: 1;
+
+
+assign   wrap4_bound   =  ( addr_next & ( ( ahb_size_byte << 2) - 1))?  0:  1;
+assign   wrap8_bound   =  ( addr_next & ( ( ahb_size_byte << 3) - 1))?  0:  1;
+assign   wrap16_bound  =  ( addr_next & ( ( ahb_size_byte << 4) - 1))?  0:  1;
+
+assign  trans_changed  =  addr_changed || burst_addr || prot_changed 
+                        || size_changed || strb_changed;
 
 assign  cur_burst_incr = ( other_burst_in == AHB_BURST_INCR )? 1'd1: 1'd0 ;
 
 assign  next_burst_incr = ( other_burst_in == AHB_BURST_INCR )?1'd1:1'd0;
 
-assign size_valid = (2 << (other_size_in + 3)) > AHB_DATA_WIDTH ? 1'd0 : 1'd1;
 
 
 assign other_clk_out =  ahb_clk_in;
