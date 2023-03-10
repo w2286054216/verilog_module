@@ -111,7 +111,7 @@ reg  [AHB_ADDR_WIDTH -1: 0]  trans_addr;
 reg [2:0] other_burst;
 
 
-
+wire  addr_aligned;
 wire  addr_changed;
 wire  addr_cross_bound;
 wire  [AHB_ADDR_WIDTH -1: 0]  addr_next;
@@ -382,13 +382,13 @@ always @(posedge ahb_clk_in) begin
 
 end
 
-
+assign  addr_aligned  =  (( other_addr_in & size_mask ) & size_byte )?  0: 1;
 assign  addr_changed  = ( trans_addr != other_addr_in);
 assign  addr_cross_bound  =  (addr_other_end[11:10]  != other_addr_in[11:10] );
 assign  addr_other_end  =  ( other_addr_in + (size_byte << trans_len) );
 assign  addr_next  =  ( ahb_addr_out + ahb_size_byte );
 assign  ahb_size_byte  =  ( 1 <<  ahb_size_out);
-assign  addr_valid  =  (( other_addr_in & size_mask ) & size_byte )?  0: 1;
+assign  addr_valid  =  ( addr_aligned || !addr_cross_bound );
 assign  burst_changed  =  ( other_burst_in  !=  ahb_burst_out);
 
 `ifdef  AHB_PROT
