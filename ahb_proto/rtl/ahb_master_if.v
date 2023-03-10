@@ -23,12 +23,18 @@ module ahb_master_if #(
     /*-----------ahb bus signal-----------*/
     output  reg  [AHB_ADDR_WIDTH-1: 0]  ahb_addr_out,
     output  reg  ahb_burst_out,
-    output  reg  [ 3:0 ] ahb_prot_out,
     input   [AHB_DATA_WIDTH-1: 0]  ahb_rdata_in,
     input   ahb_ready_in,
     input   ahb_resp_in,
     output  reg  ahb_size_out,
-    output  reg  [(AHB_DATA_WIDTH /8) -1:0]  ahb_strb_out,
+
+    `ifdef  AHB_PROT
+        output  reg  [ 3:0 ] ahb_prot_out,
+    `endif
+    `ifdef  AHB_WSTRB
+        output  reg  [(AHB_DATA_WIDTH /8) -1:0]  ahb_strb_out,
+    `endif
+
     output  reg  ahb_trans_out,
     output  reg  [AHB_DATA_WIDTH-1: 0] ahb_wdata_out,
     output  reg  ahb_write_out,
@@ -42,11 +48,17 @@ module ahb_master_if #(
     input   other_error_in,    
     output  reg  other_error_out,
     input   other_end_in,
-    input   [3:0]  other_prot_in,
+
+    `ifdef  AHB_PROT
+        input   [3:0]  other_prot_in,
+    `endif
+    `ifdef  AHB_WSTRB
+        input   [(AHB_DATA_WIDTH /8) -1:0]  other_strb_in,    
+    `endif
+
     output  reg  [AHB_DATA_WIDTH-1: 0]  other_rdata_out,
     output  reg  other_ready_out,
     input   other_size_in,
-    input   [(AHB_DATA_WIDTH /8) -1:0]  other_strb_in,
     input   other_valid_in,    
     input   [AHB_DATA_WIDTH-1: 0]  other_wdata_in,
     input   other_write_in
@@ -84,20 +96,22 @@ localparam  STATE_ERROR             =  5;
 
 
 
-reg  [2:0]  ahb_state;
+reg  [5:0]  ahb_state;
+reg  [5:0]  next_state;
+
+
+
 reg  [3:0]  burst_counter;
 reg  busy_2_seq;
-reg  [2:0]  next_state;
 reg  [1:0]  trans_unready;
 reg  last_write;
-
 
 
 reg [AHB_ADDR_WIDTH - 1: 0] burst_addr;
 reg [2:0] other_burst;
 
 
-
+wire  addr_valid;
 wire  burst_control_changed;
 wire  cur_burst_incr;
 wire  next_burst_incr;
@@ -105,22 +119,6 @@ wire  size_valid;
 
 
 ///////////////////////////Combinational logic//////////////////////////////////////////////////
-
-
-function  [AHB_ADDR_WIDTH -1: 0] get_next_addr(input [AHB_ADDR_WIDTH -1: 0] cur_addr, input [2:0] burst, input [4:0] burst_len);
-    case(burst)
-        AHB_BURST_SINGLE: get_next_addr = 0;
-        AHB_BURST_INCR: begin
-            if (cu)
-        end
-
-
-    endcase
-    
-endfunction
-
-
-
 
 
 /*get next burst addr*/
@@ -150,22 +148,21 @@ end
 
 /*FSM*/
 always @(*) begin
-
+    next_state = 0;
     if (!ahb_rstn_in)
-        next_state = STATE_RST;
+        next_state[STATE_RST]  =  1'd1;
     else begin
-        case (ahb_state)
-            STATE_RST: begin
+        case (1'd1)
+            ahb_state[STATE_RST]: begin
                 if (other_valid_in && (other_error_in || !size_valid ))
                     next_state = STATE_ERROR;
                 else if (!other_valid_in)
                     next_state = STATE_RST;
                 else
                     next_state = STATE_TRANS_NONSEQ;
-
             end
 
-            STATE_TRANS_IDLE: begin
+            ahb_state[STATE_TRANS_IDLE]: begin
                 if ( !other_valid_in || (other_valid_in && other_error_in) || multi_resp_in || other_delay_in )
                     next_state = STATE_ERROR;
                 else if ( other_end_in && !trans_unready ) 
@@ -177,7 +174,7 @@ always @(*) begin
 
             end
 
-            STATE_TRANS_BUSY: begin
+            ahb_state[STATE_TRANS_BUSY]: begin
                 if ( !other_valid_in || (other_valid_in && other_error_in) || multi_resp_in || 
                         (burst_control_changed && !cur_burst_incr ) )
                     next_state = STATE_ERROR;
@@ -189,7 +186,7 @@ always @(*) begin
                     next_state = STATE_TRANS_SEQ;
             end
 
-            STATE_TRANS_NONSEQ: begin
+            ahb_state[STATE_TRANS_NONSEQ]: begin
                 if ( !other_valid_in || (other_valid_in && other_error_in) || multi_resp_in || (!ahb_burst_out && other_delay_in ) 
                          )
                     next_state  = STATE_ERROR;
@@ -204,7 +201,7 @@ always @(*) begin
 
             end
 
-            STATE_TRANS_SEQ: begin
+            ahb_state[STATE_TRANS_SEQ]: begin
                 if ( !other_valid_in || (other_valid_in && other_error_in) || multi_resp_in || 
                     ( burst_counter && burst_control_changed ) )
                     next_state  = STATE_ERROR;
@@ -356,6 +353,10 @@ always @(posedge ahb_clk_in) begin
         endcase
 
 end
+
+
+
+assign  addr_valid  =  ((other_addr_in & (2 << other_size_in) - 1) & ( 2 << other_size_in))?  0: 1 ;
 
 
 assign  burst_control_changed = (other_burst_in != ahb_burst_out) || (other_size_in != ahb_size_out) ||
