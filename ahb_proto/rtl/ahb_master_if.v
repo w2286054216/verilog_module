@@ -113,7 +113,9 @@ reg [2:0] other_burst;
 
 
 wire  addr_changed;
+wire  addr_cross_bound;
 wire  [AHB_ADDR_WIDTH -1: 0]  addr_next;
+wire  [AHB_ADDR_WIDTH -1: 0]  addr_other_end;
 wire  [7:0]  ahb_size_byte;
 wire  addr_valid;
 wire  burst_changed;
@@ -124,6 +126,7 @@ wire  [ 7:0 ]  size_byte;
 wire  [ 6:0 ]  size_mask;
 wire  strb_changed;
 wire  trans_changed;
+wire  [2:0]  trans_len;
 wire  wrap4_bound;
 wire  wrap8_bound;
 wire  wrap16_bound;
@@ -136,21 +139,33 @@ wire  next_burst_incr;
 
 ///////////////////////////Combinational logic//////////////////////////////////////////////////
 
+function  [2:0] get_len(input [2: 0] burst);
+    case(burst)
+        AHB_BURST_SINGLE || AHB_BURST_INCR:  get_len  =  0;
+        AHB_BURST_INCR4   ||  AHB_BURST_WRAP4:   get_len  =  2;
+        AHB_BURST_INCR8   ||  AHB_BURST_WRAP8:   get_len  =  3;
+        AHB_BURST_INCR16  ||  AHB_BURST_WRAP16:  get_len  =  4;
+    endcase
+endfunction
+
+
+
+
 
 /*get next burst addr*/
 always @(*) begin
     if (!ahb_burst_out || !burst_counter)
-        burst_addr = 0;
+        burst_addr  =  0;
     else if(ahb_burst_out[0])
-        burst_addr = ahb_addr_out + ahb_size_byte;
+        burst_addr  =  addr_next;
     else begin
         case(ahb_burst_out)
         AHB_BURST_WRAP4: burst_addr   =  !wrap4_bound?  addr_next: 
-                                    ahb_addr_out - (3 << ahb_size_out );
+                                    ahb_addr_out - ( 3 << ahb_size_out );
         AHB_BURST_WRAP8: burst_addr   =  !wrap8_bound?  addr_next: 
                                     ahb_addr_out -  ( 7 << ahb_size_out );
         AHB_BURST_WRAP16: burst_addr  =  !wrap16_bound? addr_next:
-                                        ahb_addr_out - ( 30 << ahb_size_out);
+                                    ahb_addr_out - ( 15 << ahb_size_out );
         default: burst_addr = 0;
             
         endcase
@@ -369,6 +384,8 @@ end
 
 
 assign  addr_changed  = ( trans_addr != other_addr_in);
+assign  addr_cross_bound  =  (addr_other_end[11:10]  != other_addr_in[11:10] );
+assign  addr_other_end  =  ( other_addr_in + (size_byte << trans_len) );
 assign  addr_next  =  ( ahb_addr_out + ahb_size_byte );
 assign  ahb_size_byte  =  ( 1 <<  ahb_size_out);
 assign  addr_valid  =  (( other_addr_in & size_mask ) & size_byte )?  0: 1;
@@ -392,12 +409,11 @@ assign  size_mask   =  ( size_byte  - 1 );
 assign  size_valid  =  ( size_byte  << 3 ) > AHB_DATA_WIDTH ? 0: 1;
 
 
-assign   wrap4_bound   =  ( addr_next & ( ( ahb_size_byte << 2) - 1))?  0:  1;
-assign   wrap8_bound   =  ( addr_next & ( ( ahb_size_byte << 3) - 1))?  0:  1;
-assign   wrap16_bound  =  ( addr_next & ( ( ahb_size_byte << 4) - 1))?  0:  1;
+
 
 assign  trans_changed  =  addr_changed || burst_addr || prot_changed 
                         || size_changed || strb_changed;
+assign  trans_len  =  get_len(other_burst_in);
 
 assign  cur_burst_incr = ( other_burst_in == AHB_BURST_INCR )? 1'd1: 1'd0 ;
 
@@ -406,6 +422,10 @@ assign  next_burst_incr = ( other_burst_in == AHB_BURST_INCR )?1'd1:1'd0;
 
 
 assign other_clk_out =  ahb_clk_in;
+
+assign   wrap4_bound   =  ( addr_next & ( ( ahb_size_byte << 2) - 1))?  0:  1;
+assign   wrap8_bound   =  ( addr_next & ( ( ahb_size_byte << 3) - 1))?  0:  1;
+assign   wrap16_bound  =  ( addr_next & ( ( ahb_size_byte << 4) - 1))?  0:  1;
 
 
 endmodule
