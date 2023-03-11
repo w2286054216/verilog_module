@@ -47,7 +47,6 @@ module ahb_master_if #(
     input   other_delay_in,
     input   other_error_in,    
     output  reg  other_error_out,
-    input   other_end_in,
 
     `ifdef  AHB_PROT
         input   [3:0]  other_prot_in,
@@ -209,51 +208,52 @@ always @(*) begin
             ahb_state[STATE_TRANS_BUSY]: begin
                 if ( !ahb_burst_out  || ( (ahb_burst_out != AHB_BURST_INCR) && ( trans_changed || !other_sel_in || 
                         !other_valid_in || !burst_counter ) ) || other_error_in || ahb_resp_in )
-                    next_state = STATE_ERROR;
-                else if ( other_delay_in ||  (ahb_burst_out != AHB_BURST_INCR) )
-                    next_state = STATE_TRANS_BUSY;
-                else 
-                    next_state = STATE_TRANS_SEQ;
+                    next_state[STATE_ERROR] = 1'd1;
+                else  if ( other_delay_in )
+                    next_state[STATE_TRANS_BUSY]  =  1'd1;
+                else  if ( (ahb_burst_out != AHB_BURST_INCR ) || other_valid_in)
+                    next_state[STATE_TRANS_SEQ]  =  1'd1;
+                else
+                    next_state[STATE_TRANS_IDLE] = 1'd1;
             end
 
             ahb_state[STATE_TRANS_NONSEQ]: begin
-                if ( !other_valid_in || (other_valid_in && other_error_in) || multi_resp_in || (!ahb_burst_out && other_delay_in ) 
-                         )
-                    next_state  = STATE_ERROR;
-                else if (other_end_in )
-                    next_state  = STATE_TRANS_IDLE;
-                else if (other_delay_in)
-                    next_state  = STATE_TRANS_BUSY;
+                if (  ( !other_valid_in && ( ahb_burst_out > AHB_BURST_INCR)) ||  other_error_in || 
+                            (!ahb_burst_out && other_delay_in ) ||  !other_sel_in )
+                    next_state[STATE_ERROR]  =  1'd1;
+                else if ( !other_valid_in && !ahb_burst_out )
+                    next_state[STATE_TRANS_IDLE]  =  1'd1;
+                else if (other_delay_in || !other_valid_in )
+                    next_state[STATE_TRANS_BUSY]  =  1'd1;
                 else if (ahb_burst_out)
-                    next_state  = STATE_TRANS_SEQ;
+                    next_state[STATE_TRANS_SEQ]  =  1'd1;
                 else 
-                    next_state  = STATE_TRANS_NONSEQ;
-
+                    next_state[STATE_TRANS_NONSEQ]  =  1'd1;
             end
 
             ahb_state[STATE_TRANS_SEQ]: begin
-                if ( !other_valid_in || (other_valid_in && other_error_in) || multi_resp_in || 
-                    ( burst_counter && burst_control_changed ) )
-                    next_state  = STATE_ERROR;
-                else if ( other_end_in && !burst_counter )
-                    next_state  = STATE_TRANS_IDLE;
-                else if ( burst_counter && other_delay_in)
-                    next_state  = STATE_TRANS_BUSY;
+                if ( !other_sel_in || !ahb_burst_out ||  other_error_in || ahb_resp_in || 
+                    ( burst_counter && (ahb_burst_out > AHB_BURST_INCR) && ( trans_changed || !other_valid_in ) ) 
+                    || ( !burst_counter && (ahb_burst_out > AHB_BURST_INCR) && other_delay_in ) )
+                    next_state[STATE_ERROR]  =  1'd1;
+                else if ( !burst_counter && !other_valid_in)
+                    next_state[STATE_TRANS_IDLE]  =  1'd1;
+                else if ( other_delay_in ||  !other_valid_in)
+                    next_state[STATE_TRANS_BUSY]  =  1'd1;
                 else if ( !burst_counter )
-                    next_state  =  STATE_TRANS_NONSEQ;
+                    next_state[STATE_TRANS_NONSEQ]  =  1'd1;
                 else
-                    next_state = STATE_TRANS_SEQ;
+                    next_state[STATE_TRANS_SEQ]  =  1'd1;
                     
             end
 
 
             default: begin
-                next_state = STATE_RST;
+                next_state[STATE_RST]  =  1'd1;
             end
         
         endcase
     end
-
 end
 
 
