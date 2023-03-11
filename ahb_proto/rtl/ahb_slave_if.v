@@ -1,53 +1,69 @@
 
 
-/***********************************************************************************************************
+/*************************************************************************
 * Module Name:     ahb_slave_if
 * Author:          wuqlan
 * Email:           
 * Date Created:    2022/12/28
 * Description:     AHB slave interface.
-*                  Address and data bus widths are configurable using APB_ADDR_WIDTH and APB_DATA_WIDTH parameters.
+*                  Address and data bus widths are configurable using APB_ADDR_WIDTH
+*                  and APB_DATA_WIDTH parameters.
 *
 * Version:         0.1
-************************************************************************************************************/
+******************************************************************************/
 
-module ahb_slave_if (
+module ahb_slave_if #(  parameter   AHB_DATA_WIDTH    = 32,
+                        parameter   AHB_ADDR_WIDTH    = 32,
+                        parameter   AHB_WAIT_TIMEOUT  =  6
+                        )
+(
 
-    ahb_addr_in,
-    ahb_burst_in,
-    ahb_clk_in,
-    ahb_rstn_in,
-    ahb_size_in,
-    ahb_strb_in,
-    ahb_trans_in,
-    ahb_wdata_in,
-    ahb_write_in,
 
-    decoder_sel_in,
 
-    multi_rdata_out,
-    multi_resp_out,
-    multi_readyout_out,
+    input   ahb_clk_in,
+    input   ahb_rstn_in,
 
-    other_addr_out,
-    other_clk_out,
-    other_error_in,
-    other_error_out,
-    other_prot_out,
-    other_rdata_in,
-    other_ready_in,
-    other_sel_out,    
-    other_size_out,
-    other_strb_out,
-    other_wdata_out,
-    other_write_out
+    input   [AHB_ADDR_WIDTH -1:0]  ahb_addr_in,
+    input   [2:0]  ahb_burst_in,
+    output  [AHB_DATA_WIDTH -1:0]  ahb_rdata_out,
+    output  ahb_ready_out,    
+    output  ahb_resp_out,
+    input   ahb_sel_in,
+    input   [2:0]  ahb_size_in,
 
+    `ifdef  AHB_PROT
+        input  [3:0]  ahb_prot_in,
+    `endif
+    `ifdef  AHB_WSTRB
+        input  [(AHB_DATA_WIDTH /8) -1:0]  ahb_strb_in,        
+    `endif
+
+    input   [1:0]  ahb_trans_in,
+    input   [AHB_DATA_WIDTH -1: 0]  ahb_wdata_in,
+    input   ahb_write_in,
+
+
+    output  [AHB_ADDR_WIDTH -1:0]  other_addr_out,
+    output  other_clk_out,
+    input   other_error_in,
+    output  other_error_out,
+    input   [AHB_DATA_WIDTH -1: 0]  other_rdata_in,
+    input   other_ready_in,
+    output  other_sel_out,
+    output  [2:0]  other_size_out,
+
+    `ifdef  AHB_PROT
+        output  [3:0]  other_prot_out,
+    `endif
+    `ifdef  AHB_WSTRB
+        output  [(AHB_DATA_WIDTH /8) -1:0]  other_strb_out,    
+    `endif
+
+    output  [AHB_DATA_WIDTH -1:0]  other_wdata_out,
+    output  other_write_out
 );
 
 
-
-parameter AHB_DATA_WIDTH = 32;
-parameter AHB_ADDR_WIDTH = 32;
 
 
 /*ahb trans type*/
@@ -69,61 +85,31 @@ localparam  AHB_BURST_INCR16   =  3'd7;
 
 
 /*ahb slave state*/
-localparam  STATE_RST               =  3'd0;
-localparam  STATE_TRANS_IDLE        =  3'd1;
-localparam  STATE_TRANS_BUSY        =  3'd2;
-localparam  STATE_TRANS_NONSEQ      =  3'd3;
-localparam  STATE_TRANS_SEQ         =  3'd4;
-localparam  STATE_ERROR             =  3'd5;
+localparam  STATE_RST               =   0;
+localparam  STATE_TRANS_IDLE        =   1;
+localparam  STATE_TRANS_BUSY        =   2;
+localparam  STATE_TRANS_NONSEQ      =   3;
+localparam  STATE_TRANS_SEQ         =   4;
+localparam  STATE_ERROR             =   5;
 
 
 
-input [AHB_ADDR_WIDTH -1:0]  ahb_addr_in;
-input  [2:0]  ahb_burst_in;
-input  ahb_clk_in;
-input  ahb_rstn_in;
-input  [2:0]  ahb_size_in;
-input  [(AHB_DATA_WIDTH /8) -1:0]  ahb_strb_in;
-input  [1:0]  ahb_trans_in;
-input  [AHB_DATA_WIDTH -1: 0] ahb_wdata_in;
-input  ahb_write_in;
-input  decoder_sel_in;
-input  other_error_in;
-input  [AHB_DATA_WIDTH -1: 0] other_rdata_in;
-input  other_ready_in;
+reg  [5:0]  ahb_state;
+reg  [5:0]  next_state;
 
 
-output  [AHB_DATA_WIDTH -1:0] multi_rdata_out;
-output  multi_resp_out;
-output  multi_readyout_out;
-output  [AHB_ADDR_WIDTH -1:0] other_addr_out;
-output  other_clk_out;
-output  other_error_out;
-output  [3:0] other_prot_out;
-output  other_sel_out;
-output  [2:0] other_size_out;
-output  [(AHB_DATA_WIDTH /8) -1:0]  other_strb_out;
-output  [AHB_DATA_WIDTH -1:0] other_wdata_out;
-output  other_write_out;
 
+reg  [3:0]  burst_counter;
+reg  busy_2_seq;
+reg  [$log2(AHB_WAIT_TIMEOUT) -1: 0]  wait_timeout;
+reg  [1:0]  trans_unready;
+reg  last_write;
+reg  [AHB_ADDR_WIDTH -1: 0]  burst_next_addr;
+reg  [AHB_ADDR_WIDTH -1: 0]  trans_addr;
 
-reg [2:0] ahb_state;
-reg [2:0] next_state;
-reg [AHB_ADDR_WIDTH -1:0 ] burst_addr;
-reg [3:0] burst_counter;
-reg last_ready;
-reg rst_2_trans;
 
 
 reg  [2:0] ahb_burst;
-reg  [AHB_ADDR_WIDTH -1:0] other_addr_out;
-reg  other_error_out;
-reg  [3:0] other_prot_out;
-reg  other_sel_out;
-reg  [2:0] other_size_out;
-reg  [(AHB_DATA_WIDTH /8) -1:0]  other_strb_out;
-reg  [AHB_DATA_WIDTH -1:0] other_wdata_out;
-reg  other_write_out;
 
 
 
