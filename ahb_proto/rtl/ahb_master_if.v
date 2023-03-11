@@ -11,8 +11,9 @@
 ************************************************************************************************************/
 
 module ahb_master_if #(
-                parameter  AHB_ADDR_WIDTH  =  32,
-                parameter  AHB_DATA_WIDTH  =  32
+                parameter  AHB_ADDR_WIDTH      =  32,
+                parameter  AHB_DATA_WIDTH      =  32,
+                parameter  AHB_WAIT_TIMEOUT    =  6
                 )
 (
 
@@ -103,12 +104,11 @@ reg  [5:0]  next_state;
 
 reg  [3:0]  burst_counter;
 reg  busy_2_seq;
+reg  [$log2(AHB_WAIT_TIMEOUT) -1: 0]  wait_timeout;
 reg  [1:0]  trans_unready;
 reg  last_write;
-reg  [AHB_ADDR_WIDTH -1: 0]  burst_addr;
 reg  [AHB_ADDR_WIDTH -1: 0]  trans_addr;
 
-reg [2:0] other_burst;
 
 
 wire  addr_aligned;
@@ -264,32 +264,42 @@ end
 always @(negedge ahb_clk_in  or negedge ahb_rstn_in) begin
 
     if (!ahb_rstn_in)
-        ahb_state <=  STATE_RST;
+        ahb_state  <=  1;
     else
-        ahb_state <= next_state;
+        ahb_state  <=  next_state;
 end
 
 
-/*data control*/
+/*address control*/
 always @(posedge ahb_clk_in) begin
 
         case (ahb_state)
             STATE_RST: begin
-                ahb_addr_out <= 0;
-                ahb_burst_out <= 0;
-                ahb_size_out <= 0;
-                ahb_strb_out <= 0;
-                ahb_trans_out <= 0;
-                ahb_wdata_out <= 0;
-                ahb_write_out <= 0;
-                
-                other_burst <= 0;
-                other_error_out <= 0;
-                other_ready_out <= 0;
-                other_rdata_out <= 0;
+                ahb_addr_out            <=   0;
+                ahb_burst_out           <=   0;
+                ahb_size_out            <=   0;
+                ahb_trans_out           <=   0;
+                ahb_wdata_out           <=   0;
+                ahb_write_out           <=   0;
+            
+            `ifdef   AHB_PROT
+                ahb_prot_out            <=   0;
+            `endif
+            `ifdef   AHB_WSTRB
+                ahb_strb_out            <=   0;
+            `endif
+                burst_counter           <=   0;
 
-                busy_2_seq  <= 0;
-                trans_unready <= 0;
+                other_error_out         <=   0;
+                other_ready_out         <=   0;
+                other_rdata_out         <=   0;
+
+                trans_unready           <=   0;
+                wait_timeout            <=   0;
+                last_write              <=   0;
+
+                trans_addr              <=   0;
+
             end
 
 
@@ -383,6 +393,22 @@ always @(posedge ahb_clk_in) begin
         endcase
 
 end
+
+
+//
+always @(posedge clk or negedge rstn) begin
+
+
+    
+end
+
+
+
+
+
+
+
+
 
 assign  addr_aligned  =  (( other_addr_in & size_mask ) & size_byte )?  0: 1;
 assign  addr_changed  = ( trans_addr != other_addr_in);
