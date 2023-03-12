@@ -117,54 +117,45 @@ task  ahb_monitor::slave_collect_trans();
 
 
         all_len  =  get_burst_size(tr.burst);
+        all_len  =  all_len?  all_len: s_tr.size;
         len = 0;
         while(len  < all_len)begin
             
-            s_vif.ready = 0;
+            s_vif.ready     <=    0;
             if ( s_vif.slave_error || ((tr.other_error == len) && tr.other_error) )
                 break;
 
+            for (int i = 0; i < tr.ready[len]; i++)begin
+                if (tr.error[len] && (tr.error[len] == i))begin
+                    s_vif.other_error      <=  1;
+                    break;
+                end
+                @(posedge  s_vif.clk);
+            end
 
-
-
-        end
-
-
-
-
-
-        if (m_vif.master_error) begin
             if (tr.write)
                 tr.wdata.push_back(s_vif.wdata);
-            
-            ap.write(tr);
-            trans_q.pop_front();
-        end
-        else begin
 
+            if (s_vif.other_error  || s_vif.slave_error)
+                break;
 
+            s_vif.ready      <=   1;
 
-            if (all_len) begin
-                len = tr.write? tr.wdata.size(): tr.rdata.size();
-                if ( len == all_len ) begin
-                    ap.write(tr);
-                    trans_q.pop_front();
-                end 
-                else
-                    continue;
+            if(!tr.write) begin
+                tr.rdata.push_back(s_tr.rdata[len]);
+                s_vif.rdata      <=  s_tr.rdata[len];
             end
-            else begin
-                if (m_vif.burst != tr.burst) begin
-                    ap.write(tr);
-                    trans_q.pop_front();
-                end
-                else
-                    continue;
 
-            end
+            @(posedge s_vif.clk);
+            s_vif.rdata             <=  0;            
+            s_vif.ready             <=  0;
+            s_vif.other_error       <=   0;
+
 
         end
 
+        ap.write(tr);
+        trans_q.pop_front();
 
     end
 
