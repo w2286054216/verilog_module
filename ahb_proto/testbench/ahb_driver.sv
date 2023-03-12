@@ -58,22 +58,31 @@ task ahb_driver::main_phase(uvm_phase phase);
         seq_item_port.item_done();
     end
 
-    repeat(5) @(posedge vif.clk);
+    repeat(6) @(posedge vif.clk);
 
 endtask
 
 
 task  ahb_driver::drive_one_pkt(ahb_master_transaction tr);
 
-    vif_master.addr           <= tr.addr;
-    vif_master.burst          <= tr.burst;
-    vif_master.end_tran       <= tr.end_tran;    
-    vif_master.other_error    <= tr.other_error;
-    vif_master.prot           <= tr.prot;
-    vif_master.size           <= tr.size;
-    vif_master.strb           <= tr.strb;
-    vif_master.valid          <= tr.valid;
-    vif_master.write          <= tr.write;
+
+
+
+    vif.addr           <=  tr.addr;
+    vif.burst          <=  tr.burst;
+    vif.other_error    <=  tr.other_error;
+
+    `ifdef  AHB_PROT
+        vif.prot           <=  tr.prot;
+    `endif
+    `ifdef  AHB_WSTRB
+        vif.strb           <=  tr.strb;
+    `endif
+
+    vif.size           <=  tr.size;
+
+    vif.valid          <=  tr.valid;
+    vif.write          <=  tr.write;
 
     if (tr.delay) begin
         if (tr.delay == 1'd1)
