@@ -69,58 +69,119 @@ class ahb_monitor extends uvm_monitor;
     endfunction
 
     extern  task  main_phase(uvm_phase phase);
-    extern  task  master_collect_trans(ahb_transaction  tr);
-    extern  task  slave_collect_trans(ahb_transaction  tr);
+    extern  task  master_collect_trans();
+    extern  task  slave_collect_trans();
     extern  task  add_new_transaction();
 
 
 endclass
 
-task  ahb_monitor::main_phase(uvm_phase phase)
+task  ahb_monitor::main_phase(uvm_phase phase);
 
-    ahb_transaction  tr;
-    while (1) begin
-        tr = new("tr");
-
-        if (mon_master)
-            master_collect_trans(tr);
-        else
-            slave_collect_trans(tr);
-
-        ap.write(tr);
-
-    end
-
-endtask
-
-
-task  ahb_monitor::slave_collect_trans(ahb_transaction  tr);
-
-    int burst_size, wdata_size, rdata_size;
-
-    
-
-    wait(is_master_transfer());
-
-    while (1) begin
-
-        if (!is_master_transfer())   break;
-
-        if (vif_master.ready) begin
-            master_ready_data(ahb_trans_q);
-            if (trans_unready) trans_unready--;
+    fork
+        while (1) begin
+            add_new_transaction();
         end
 
-        if(master_add_transaction(ahb_trans_q))  trans_unready++;
+        if (mon_master)
+            master_collect_trans();
+        else
+            slave_collect_trans();
 
-        @(posedge vif_master.clk);
+    join
+    
+
+endtask
+
+
+task  ahb_monitor::slave_collect_trans();
+
+    ahb_transaction  tr;
+    int unsigned len, all_len;
+
+    while (1) begin
+
+        tr = trans_q[0];
+
+        if (tr == null) begin
+            @(posedge s_vif.clk);
+            continue;
+        end 
+
+        wait(s_vif.ready ==  1'd1);
+        @(posedge s_vif.clk);
+
 
     end
 
 endtask
+
+
+
+
+task  ahb_monitor::master_collect_trans();
+
+    ahb_transaction  tr;
+    int unsigned len, all_len;
+
+    while (1) begin
+
+        tr = trans_q[0];
+
+        if (tr == null) begin
+            @(posedge m_vif.clk);
+            continue;
+        end 
+
+        wait(m_vif.ready ==  1'd1);
+        @(posedge m_vif.clk);
+
+        if (m_vif.master_error) begin
+            if (tr.write)
+                tr.wdata.push_back(m_vif.wdata);
+            
+            ap.write(tr);            
+            trans_q.pop_front();
+        end
+        else begin
+            all_len  =  get_burst_size(tr.burst);
+            if (tr.write)
+                tr.wdata.push_back(m_vif.wdata);
+            else
+                tr.rdata.push_back(m_vif.rdata);
+
+
+            if (all_len) begin
+                len = tr.write? tr.wdata.size(): tr.rdata.size();
+                if ( len == all_len ) begin
+                    ap.write(tr);
+                    trans_q.pop_front();
+                end 
+                else
+                    continue;
+            end
+            else begin
+                if (m_vif.burst != tr.burst) begin
+                    ap.write(tr);
+                    trans_q.pop_front();
+                end
+                else
+                    continue;
+
+            end
+
+        end
+
+    end
+
+endtask
+
+
 
 
 task  ahb_monitor::add_new_transaction();
+
+    ahb_transaction  tr;
 
     if (trans_q.size() == 2)
         return;
@@ -131,17 +192,51 @@ task  ahb_monitor::add_new_transaction();
         @(posedge m_vif.clk);
         if ( (!m_vif.addr && !m_vif.burst && !m_vif.delay && !m_vif.other_error
             && !m_vif.size && !m_vif.write ) || !m_vif.valid  )
-            return;
+            return  0;
     end
     else  begin
+        @(s_vif.addr or s_vif.sel or s_vif.write);
+        wait(s_vif.sel == 1);
+        @( posedge s_vif.clk);
         
     end
 
+    tr = new("tr");
+    trans_q.push_back(tr);
+
+    if (mon_master) begin
+        tr.addr   =  m_vif.addr;
+        tr.burst  =  m_vif.burst;
+        
+        `ifdef  AHB_PROT
+            tr.prot  =  m_vif.prot;
+        `endif
+        `ifdef  AHB_WSTRB
+            tr.strb  =  m_vif.strb;
+        `endif
+
+        tr.size   =  m_vif.size;
+        tr.write  =  m_vif.write;
+
+    end
+    else begin
+        
+        tr.addr   =  s_vif.addr;
+        tr.burst  =  s_vif.burst;
+        
+        `ifdef  AHB_PROT
+            tr.prot  =  s_vif.prot;
+        `endif
+        `ifdef  AHB_WSTRB
+            tr.strb  =  s_vif.strb;
+        `endif
+
+        tr.size   =  s_vif.size;
+        tr.write  =  s_vif.write;
+
+    end
 
 endtask
-
-
-
 
 
 `endif
