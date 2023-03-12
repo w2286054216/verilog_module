@@ -25,6 +25,7 @@ class  ahb_master_transaction extends uvm_sequence_item;
     rand  bit  [`AHB_ADDR_WIDTH-1:0]  addr;
     rand  bit  [2: 0]  burst;
     rand  bit  [1: 0]  delay;
+    rand  bit  [3: 0]  data_size;    
     rand  bit  [1: 0]  other_error;
     rand  bit  [1: 0]  sel;    
     rand  bit  [2: 0]  size;
@@ -35,19 +36,22 @@ class  ahb_master_transaction extends uvm_sequence_item;
     `ifdef  AHB_WSTRB
         rand  bit [(`AHB_DATA_WIDTH / 8) -1:0]  strb;
     `endif
-    rand  bit valid;
-    rand  bit [`AHB_DATA_WIDTH-1:0] wdata[];
-    rand  bit write;
+    rand  bit  valid;
+    rand  bit  [`AHB_DATA_WIDTH-1:0] wdata[];
+
+    rand  bit  write;
 
     constraint  addr_range  { addr[`AHB_ADDR_WIDTH-1:12] == 20'h20380;}
     constraint  wdata_range { foreach(wdata[i]) wdata[i][15: 0] == 16'h0340; }
 
     constraint  wdata_size {  write -> (wdata.size == 16);  }
+    constraint  rdata_size {  !write -> (wdata.size == 0);  }
 
 
     `uvm_object_utils_begin(ahb_master_transaction)
         `uvm_field_int(addr, UVM_ALL_ON)
         `uvm_field_int(burst, UVM_ALL_ON)
+        `uvm_field_int(data_size, UVM_ALL_ON)        
         `uvm_field_int(delay, UVM_ALL_ON)
         `uvm_field_int(other_error, UVM_ALL_ON)
         `uvm_field_int(sel, UVM_ALL_ON)
