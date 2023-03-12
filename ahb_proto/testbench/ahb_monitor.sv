@@ -96,8 +96,11 @@ endtask
 
 task  ahb_monitor::slave_collect_trans();
 
+    ahb_slave_transaction  s_tr;
     ahb_transaction  tr;
     int unsigned len, all_len;
+
+    s_tr = new("s_tr");
 
     while (1) begin
 
@@ -108,8 +111,59 @@ task  ahb_monitor::slave_collect_trans();
             continue;
         end 
 
-        wait(s_vif.ready ==  1'd1);
         @(posedge s_vif.clk);
+
+        assert (s_tr.randomize());
+
+
+        all_len  =  get_burst_size(tr.burst);
+        len = 0;
+        while(len  < all_len)begin
+            
+            s_vif.ready = 0;
+            if ( s_vif.slave_error || ((tr.other_error == len) && tr.other_error) )
+                break;
+
+
+
+
+        end
+
+
+
+
+
+        if (m_vif.master_error) begin
+            if (tr.write)
+                tr.wdata.push_back(s_vif.wdata);
+            
+            ap.write(tr);
+            trans_q.pop_front();
+        end
+        else begin
+
+
+
+            if (all_len) begin
+                len = tr.write? tr.wdata.size(): tr.rdata.size();
+                if ( len == all_len ) begin
+                    ap.write(tr);
+                    trans_q.pop_front();
+                end 
+                else
+                    continue;
+            end
+            else begin
+                if (m_vif.burst != tr.burst) begin
+                    ap.write(tr);
+                    trans_q.pop_front();
+                end
+                else
+                    continue;
+
+            end
+
+        end
 
 
     end
