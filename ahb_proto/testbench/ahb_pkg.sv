@@ -9,6 +9,8 @@
 * Version:         0.1
 **************************************************************************/
 
+`ifdef  AHB_PKG_SV
+`define  AHB_PKG_SV
 
 package  ahb_pkg;
 
@@ -46,14 +48,8 @@ function  int  get_burst_size(ahb_burst_type burst_type);
     
 endfunction
 
-
-
-
-
-
-
-
-
     
 endpackage
+
+`endif
 
