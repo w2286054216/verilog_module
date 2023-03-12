@@ -16,7 +16,7 @@
 
 `include "definition.sv"
 
-interface ahb_master_if;
+interface  master_if;
     
     bit  [`AHB_ADDR_WIDTH-1:0]  addr;
     bit  [2:0] burst;
@@ -42,8 +42,8 @@ interface ahb_master_if;
     bit  write;
 
 
-endinterface //ahb_master_if
+endinterface //master_if
 
-typedef  virtual  ahb_master_if  VTSB_MASTER_IF;
+typedef  virtual  master_if  VTSB_MASTER_IF;
 
 `endif
