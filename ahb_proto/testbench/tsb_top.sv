@@ -11,10 +11,6 @@
 **************************************************************************************/
 
 `include  "definition.sv"
-`include  "ahb_agent.sv"
-`include  "ahb_transaction.sv"
-`include  "ahb_scoreboard.sv"
-`include  "ahb_env.sv"
 `include  "default_test.sv"
 `include  "uvm_macros.svh"
 
@@ -103,26 +99,25 @@ module top;
   end
   endgenerate
 
-  initial begin
-      $vcdpluson();
-      $vcdplusmemon;
-  end
-
-  initial begin
-    run_test("default_test");
-  end
-
-
-
-  initial begin
-    uvm_config_db #(VTSB_MASTER_T)::set(null, "uvm_test_top.env.master_agt.drv",  "vif_master", vmaster_if);
-    uvm_config_db #(VTSB_MASTER_T)::set(null, "uvm_test_top.env.master_agt.mon",  "vif",  input_if);
-
-    for (int i = 0; i < `AHB_SLAVE_DEVICES;  i++) begin
-      uvm_config_db #(VTSB_SLAVE_T)::set(null, "uvm_test_top.env.slave_agt" `"i`"".mon",  "vif",  input_if);
+    initial begin
+        $vcdpluson();
+        $vcdplusmemon;
     end
 
-  end
+    initial begin
+        run_test("default_test");
+    end
+
+
+
+    initial begin
+        uvm_config_db #(VTSB_MASTER_T)::set(null, "uvm_test_top.env.master_agt.drv",  "vif_master", vmaster_if);
+        uvm_config_db #(VTSB_MASTER_T)::set(null, "uvm_test_top.env.master_agt.mon",  "vif",  input_if);
+
+        for (int i = 0; i < `AHB_SLAVE_DEVICES;  i++) begin
+            uvm_config_db #(VTSB_SLAVE_T)::set(null, "uvm_test_top.env.slave_agt" `"i`"".mon",  "vif",  input_if);
+        end
+    end
 
 
 
