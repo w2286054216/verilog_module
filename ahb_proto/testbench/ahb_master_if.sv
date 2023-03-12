@@ -20,13 +20,15 @@ interface ahb_master_if;
     
     bit  [`AHB_ADDR_WIDTH-1:0]  addr;
     bit  [2:0] burst;
+    bit  busy;
     bit  clk;
     bit  delay;
     bit  master_error;
     bit  other_error;
     bit  [`AHB_DATA_WIDTH-1:0]  rdata; 
     bit  ready;
-    bit  [3:0]  size;
+    bit  sel;
+    bit  [2:0]  size;
 
     `ifdef  AHB_PROT
         bit  [3:0]  prot;
@@ -35,9 +37,10 @@ interface ahb_master_if;
         bit  [(`AHB_DATA_WIDTH / 8) -1: 0]  strb;
     `endif
 
+    bit  valid;
     bit  [`AHB_DATA_WIDTH-1:0]  wdata;
     bit  write;
-    bit  valid;
+
 
 endinterface //ahb_master_if
 
