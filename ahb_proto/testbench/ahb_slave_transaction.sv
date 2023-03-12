@@ -18,7 +18,7 @@
 import  uvm_pkg::*;
 
 
-class  ahb_slave_transaction extends uvm_sequence_item;
+class  ahb_slave_transaction extends uvm_transaction;
 
     rand  bit  [2: 0]  other_error;  
     rand  bit  [`AHB_DATA_WIDTH-1:0]  rdata[];
