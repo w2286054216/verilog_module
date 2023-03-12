@@ -105,7 +105,7 @@ reg  [AHB_ADDR_WIDTH -1: 0]  burst_next_addr;
 reg  [1:0]  other_burst;
 reg  [AHB_ADDR_WIDTH -1: 0]  trans_addr;
 reg  [1:0]  trans_unready;
-reg  [$log2(AHB_WAIT_TIMEOUT) -1: 0]  wait_timeout;
+reg  [$clog2(AHB_WAIT_TIMEOUT) -1: 0]  wait_timeout;
 
 
 
@@ -145,28 +145,34 @@ wire  burst_addr_valid;
 
 ///////////////////////////Combinational logic//////////////////////////////////////////////////
 
-
+function  [2:0] get_len(input [2: 0] burst);
+    case(burst)
+        AHB_BURST_SINGLE || AHB_BURST_INCR:  get_len  =  0;
+        AHB_BURST_INCR4   ||  AHB_BURST_WRAP4:   get_len  =  2;
+        AHB_BURST_INCR8   ||  AHB_BURST_WRAP8:   get_len  =  3;
+        AHB_BURST_INCR16  ||  AHB_BURST_WRAP16:  get_len  =  4;
+    endcase
+endfunction
 
 
 
 /*get next burst addr*/
 always @(*) begin
-    if (!ahb_burst || burst_counter)
-        burst_next_addr = 0;
+
+    burst_next_addr  =  0;
+    if (!ahb_burst || !burst_counter)
+        burst_next_addr  =  0;
     else if(ahb_burst[0])
-        burst_next_addr = other_addr_out + ( 2 << other_size_out);
+        burst_next_addr  =  addr_next;
     else begin
         case(ahb_burst)
-        AHB_BURST_WRAP4: burst_next_addr = (other_addr_out + (2 << other_size_out)) & (( 2 << (other_size_out + 2) ) - 1)?
-                             other_addr_out + ( 2 << other_size_out): 
-                             other_addr_out - (6 << other_size_out);
-        AHB_BURST_WRAP8: burst_next_addr = (other_addr_out + (2 << other_size_out)) & (( 2 << (other_size_out + 3) ) - 1)?
-                             other_addr_out + ( 2 << other_size_out): 
-                             other_addr_out -  (14 << other_size_out);
-        AHB_BURST_WRAP16: burst_next_addr = (other_addr_out + (2 << other_size_out)) & (( 2 << (other_size_out + 4) ) - 1)?
-                             other_addr_out + ( 2 << other_size_out): 
-                             other_addr_out - ( 30 << other_size_out);
-        default: burst_next_addr = 0;
+            AHB_BURST_WRAP4: burst_next_addr   =  !wrap4_bound?  addr_next: 
+                                        other_addr_out - ( 3 << other_size_out );
+            AHB_BURST_WRAP8: burst_next_addr   =  !wrap8_bound?  addr_next: 
+                                        other_addr_out -  ( 7 << other_size_out );
+            AHB_BURST_WRAP16: burst_next_addr  =  !wrap16_bound? addr_next:
+                                        other_addr_out - ( 15 << other_size_out );
+            default: burst_next_addr = 0;
             
         endcase
     end
@@ -336,33 +342,24 @@ always @(posedge ahb_clk_in) begin
 
             if (ahb_burst_in) begin
                 if (ahb_burst_in >= 3'd6)
-                    burst_counter <= 4'd15;
+                    burst_counter           <=    4'd15;
                 else if (ahb_burst_in >= 3'd4)
-                    burst_counter <= 4'd7;
+                    burst_counter           <=    4'd7;
                 else
-                    burst_counter <= 4'd3;
+                    burst_counter           <=    4'd3;
             end
             else
-                burst_counter <= 4'd0;
+                burst_counter               <=    4'd0;
 
         end
 
         ahb_state[STATE_TRANS_SEQ]:begin
     
-            if ((ahb_burst == AHB_BURST_INCR) && last_ready)
-                other_addr_out <= burst_addr;
-            else
-                other_addr_out <= other_addr_out;
-            
-            other_wdata_out <= ahb_write_in? ahb_wdata_in:0;
-            burst_counter <= (burst_counter - 4'd1);
-        end
+            other_addr_out      <=   burst_next_addr;
 
-        ahb_state[STATE_ERROR]:begin
-            other_error_out <= 1'd1;
+            burst_counter           <=   (burst_counter -  1);
         end
             
-    
         default: ;
     endcase
 end
@@ -374,25 +371,24 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in ) begin
     case (1'd1)
         ahb_state[STATE_RST]: begin
             other_wdata_out         <=    0;
-            ahb_rdata_out           <=    0;            
+            ahb_rdata_out           <=    0;
             ahb_ready_out           <=    0;
             ahb_resp_out            <=    0;
         end
 
-        ahb_state[STATE_TRANS_IDLE]: begin
-
-        end
-
-        ahb_state[STATE_TRANS_BUSY]: begin
-        end
-
-        ahb_state[STATE_TRANS_NONSEQ]: begin
-        end
-
-        ahb_state[STATE_TRANS_SEQ]: begin
+        ahb_state[STATE_TRANS_IDLE]  || ahb_state[STATE_TRANS_BUSY] || ahb_state[STATE_TRANS_NONSEQ]
+            ||  ahb_state[STATE_TRANS_SEQ]: begin
+            other_wdata_out         <=    other_write_out?ahb_wdata_in:  0;
+            ahb_rdata_out           <=    0;
+            ahb_ready_out           <=    0;
+            ahb_resp_out            <=    0;
         end
 
         ahb_state[STATE_ERROR]: begin
+            other_wdata_out         <=    0;
+            ahb_rdata_out           <=    0;
+            ahb_ready_out           <=    trans_unready[1]? 0:  1;
+            ahb_resp_out            <=    1;
         end
 
         default: ;
@@ -400,14 +396,6 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in ) begin
     endcase
 
 end
-
-
-
-
-
-
-
-
 
 
 
@@ -448,7 +436,7 @@ assign  size_valid  =  ( size_byte  << 3 ) > AHB_DATA_WIDTH ? 0: 1;
 
 assign  trans_changed  =  addr_changed || burst_changed || prot_changed 
                         || size_changed || strb_changed;
-assign  trans_len  =  get_len(other_burst_in);
+assign  trans_len  =  get_len(ahb_burst);
 
 assign  cur_burst_incr = ( other_burst == AHB_BURST_INCR )? 1'd1: 1'd0 ;
 
@@ -464,10 +452,6 @@ assign   wrap16_bound  =  ( addr_next & ( ( ahb_size_byte << 4) - 1))?  0:  1;
 
 
 
-
-
-
-
-
 endmodule //ahb_slave_if
+
 
