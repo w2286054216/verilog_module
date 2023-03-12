@@ -39,5 +39,7 @@ interface ahb_slave_if;
 
 endinterface //ahb_slave_if
 
+typedef  virtual  ahb_slave_if  VTSB_SLAVE_IF;
+
 `endif
 

@@ -41,6 +41,6 @@ interface ahb_master_if;
 
 endinterface //ahb_master_if
 
-
+typedef  virtual  ahb_master_if  VTSB_MASTER_IF;
 
 `endif
