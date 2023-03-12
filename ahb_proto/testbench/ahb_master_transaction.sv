@@ -36,7 +36,7 @@ class  ahb_master_transaction extends uvm_sequence_item;
     `ifdef  AHB_WSTRB
         rand  bit [(`AHB_DATA_WIDTH / 8) -1:0]  strb;
     `endif
-    rand  bit  valid;
+    rand  bit  [1: 0]  valid;
     rand  bit  [`AHB_DATA_WIDTH-1:0] wdata[];
 
     rand  bit  write;
