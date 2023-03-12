@@ -11,8 +11,8 @@
 ****************************************************************************************/
 
 
-`ifndef  AHB_MASTER_IF
-`define  AHB_MASTER_IF
+`ifndef  MASTER_IF_SV
+`define  MASTER_IF_SV
 
 `include "definition.sv"
 
