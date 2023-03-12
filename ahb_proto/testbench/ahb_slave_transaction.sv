@@ -20,9 +20,9 @@ import  uvm_pkg::*;
 
 class  ahb_slave_transaction extends uvm_transaction;
 
-    rand  bit  [2: 0]  other_error;  
+    rand  bit  [1: 0]  other_error;  
     rand  bit  [`AHB_DATA_WIDTH-1:0]  rdata[];
-    rand  bit  [1: 0]  ready;
+    rand  bit  [2: 0]  ready;
     rand  bit  [3: 0]  size;    
 
     constraint  rdata_range  { foreach(rdata[i]) rdata[i][15:0] == 16'h8030; }
