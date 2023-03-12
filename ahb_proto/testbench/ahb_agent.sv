@@ -46,7 +46,8 @@ class ahb_agent extends uvm_agent;
         `uvm_info("ahb_agent", "new is called", UVM_HIGH);
     endfunction
 
-    function void my_agent::build_phase(uvm_phase phase);
+
+    function  void  build_phase(uvm_phase phase);
         super.build_phase(phase);
         if (is_active == UVM_ACTIVE) begin
             sqr = my_sequencer::type_id::create("sqr", this);
@@ -57,7 +58,7 @@ class ahb_agent extends uvm_agent;
     endfunction 
 
 
-    function void my_agent::connect_phase(uvm_phase phase);
+    function  void  connect_phase(uvm_phase phase);
         super.connect_phase(phase);
         if (is_active == UVM_ACTIVE)
             drv.seq_item_port.connect(sqr.seq_item_export);
@@ -65,8 +66,8 @@ class ahb_agent extends uvm_agent;
     endfunction
 
 
-endclass
 
+endclass
 
 
 `endif
