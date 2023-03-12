@@ -45,7 +45,7 @@ class  ahb_master_transaction extends uvm_sequence_item;
     constraint  wdata_size {  write -> (wdata.size == 16);  }
 
 
-    `define uvm_object_utils_begin(ahb_master_transaction)
+    `uvm_object_utils_begin(ahb_master_transaction)
         `uvm_field_int(addr, UVM_ALL_ON)
         `uvm_field_int(burst, UVM_ALL_ON)
         `uvm_field_int(delay, UVM_ALL_ON)
@@ -63,7 +63,7 @@ class  ahb_master_transaction extends uvm_sequence_item;
         `uvm_field_int(valid, UVM_ALL_ON)
         `uvm_field_array_int(wdata, UVM_ALL_ON)
         `uvm_field_int(write, UVM_ALL_ON)
-    `define uvm_object_utils_end
+    `uvm_object_utils_end
 
 
     function  new(string name = "ahb_master_transition");
