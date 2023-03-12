@@ -27,7 +27,6 @@ class ahb_driver extends uvm_driver;
 
    `uvm_component_utils(ahb_driver)
     
-    VTSB_MASTER_T  vif_master;
 
     local bit [1:0] trans_wait;
 
