@@ -11,12 +11,12 @@
 ***********************************************************************************/
 
 
-`ifndef  AHB_SLAVE_IF_SV
-`define  AHB_SLAVE_IF_SV
+`ifndef  SLAVE_IF_SV
+`define  SLAVE_IF_SV
 
 `include "definition.sv"
 
-interface ahb_slave_if;
+interface  slave_if;
     
     bit  [`AHB_ADDR_WIDTH-1:0] addr;
     bit  clk;
@@ -37,9 +37,9 @@ interface ahb_slave_if;
     bit  write;
 
 
-endinterface //ahb_slave_if
+endinterface //slave_if
 
-typedef  virtual  ahb_slave_if  VTSB_SLAVE_IF;
+typedef  virtual  slave_if  VTSB_SLAVE_IF;
 
 `endif
 
