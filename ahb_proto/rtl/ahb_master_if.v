@@ -104,7 +104,7 @@ reg  [5:0]  next_state;
 
 reg  [3:0]  burst_counter;
 reg  busy_2_seq;
-reg  [$log2(AHB_WAIT_TIMEOUT) -1: 0]  wait_timeout;
+reg  [$clog2(AHB_WAIT_TIMEOUT) -1: 0]  wait_timeout;
 reg  [1:0]  trans_unready;
 reg  last_write;
 reg  [AHB_ADDR_WIDTH -1: 0]  burst_next_addr;
