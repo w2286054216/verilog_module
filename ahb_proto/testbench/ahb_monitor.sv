@@ -17,8 +17,9 @@
 
 
 `include  "definition.sv"
-`include  "ahb_master_if.sv"
-`include  "ahb_slave_if.sv"
+`include  "master_if.sv"
+`include  "slave_if.sv"
+`include  "ahb_slave_transaction.sv"
 `include  "ahb_transaction.sv"
 `include  "ahb_pkg.sv"
 `include  "uvm_macros.svh"
@@ -29,16 +30,16 @@ import  ahb_pkg::*;
 
 class ahb_monitor extends uvm_monitor;
 
-    `uvm_component_utils()
+    `uvm_component_utils(ahb_monitor)
 
-    VTSB_MASTER_T vif_master;
-    VTSB_SLAVE_T  vif_slave;
+    VTSB_MASTER_IF m_vif;
+    VTSB_SLAVE_IF  s_vif;
 
-    uvm_analysis_port #(ahb_transactions_queue)  ap;
+    uvm_analysis_port #(ahb_transaction)  ap;
 
     bit mon_master;
 
-    local bit[1:0] trans_unready
+    local bit[1:0] trans_unready;
 
     function  new(string name = "ahb_monitor", uvm_component parent = null);
         super.new(name, parent);
@@ -50,11 +51,11 @@ class ahb_monitor extends uvm_monitor;
             super.build_phase(phase);
 
             if (mon_master) begin
-                if(!uvm_config_db#(VTSB_MASTER_T)::get(this, "", "vif_master", vif_master))
+                if(!uvm_config_db#(VTSB_MASTER_IF)::get(this, "", "m_vif", m_vif))
                     `uvm_fatal("ahb_monitor", "virtual interface must be set for vif_master!!!")
             end 
             else begin
-                if(!uvm_config_db#(VTSB_MASTER_T)::get(this, "", "vif_slave", vif_slave))
+                if(!uvm_config_db#(VTSB_MASTER_IF)::get(this, "", "s_vif", s_vif))
                     `uvm_fatal("ahb_monitor", "virtual interface must be set for vif_slave!!!")
             end
             
@@ -295,23 +296,6 @@ endtask
 
 
 `endif
-
-
-
-
-    bit [`AHB_ADDR_WIDTH-1:0] addr;
-    bit [2:0] burst;
-    bit [1: 0] delay;
-    bit [3:0] prot;
-    bit [`AHB_DATA_WIDTH-1:0] rdata[];
-    bit other_error;
-    bit recv_error;
-    bit [2:0] size;
-    bit [(`AHB_DATA_WIDTH / 8) -1:0] strb;
-    bit [`AHB_DATA_WIDTH-1:0] wdata[];
-    bit write;
-
-
 
 
 
