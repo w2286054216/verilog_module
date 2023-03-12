@@ -27,6 +27,7 @@ class ahb_driver extends uvm_driver;
 
    `uvm_component_utils(ahb_driver)
     
+    VTSB_MASTER_IF  vif;
 
     local bit [1:0] trans_wait;
 
@@ -37,12 +38,12 @@ class ahb_driver extends uvm_driver;
 
    virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        if(!uvm_config_db #(VTSB_MASTER_T)::get(this, "", "vif_master", vif_master))
+        if(!uvm_config_db #(VTSB_MASTER_IF)::get(this, "", "vif", vif))
             `uvm_fatal("ahb_driver", "virtual interface must be set for vif!!!")
    endfunction
 
     extern task main_phase(uvm_phase phase);
-    extern task drive_one_pkt(ahb_master_transition tr);
+    extern task drive_one_pkt(ahb_master_transaction tr);
 
 endclass
 
@@ -63,8 +64,6 @@ endtask
 
 
 task  ahb_driver::drive_one_pkt(ahb_master_transaction tr);
-
-    wait( trans_wait < 2 );
 
     vif_master.addr           <= tr.addr;
     vif_master.burst          <= tr.burst;
