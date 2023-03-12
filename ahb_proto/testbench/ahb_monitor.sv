@@ -71,7 +71,7 @@ class ahb_monitor extends uvm_monitor;
     extern  task  main_phase(uvm_phase phase);
     extern  task  master_collect_trans(ahb_transaction  tr);
     extern  task  slave_collect_trans(ahb_transaction  tr);
-    extern  function   bit  add_new_transaction();
+    extern  task  add_new_transaction();
 
 
 endclass
@@ -98,9 +98,7 @@ task  ahb_monitor::slave_collect_trans(ahb_transaction  tr);
 
     int burst_size, wdata_size, rdata_size;
 
-    if (trans_q.size() == 2) begin
-        
-    end
+    
 
     wait(is_master_transfer());
 
@@ -122,11 +120,25 @@ task  ahb_monitor::slave_collect_trans(ahb_transaction  tr);
 endtask
 
 
+task  ahb_monitor::add_new_transaction();
+
+    if (trans_q.size() == 2)
+        return;
+
+    if (mon_master) begin
+        @( m_vif.addr or m_vif.burst or m_vif.delay or m_vif.other_error
+            or m_vif.size or  m_vif.write or m_vif.valid);
+        @(posedge m_vif.clk);
+        if ( (!m_vif.addr && !m_vif.burst && !m_vif.delay && !m_vif.other_error
+            && !m_vif.size && !m_vif.write ) || !m_vif.valid  )
+            return;
+    end
+    else  begin
+        
+    end
 
 
-
-
-
+endtask
 
 
 
