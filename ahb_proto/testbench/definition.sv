@@ -20,7 +20,7 @@
 
 `define  AHB_SLAVE_DEVICES   4
 
-
+`define  AHB_TRANS_TIMES      40
 
 
 `endif

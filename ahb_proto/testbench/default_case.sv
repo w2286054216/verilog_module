@@ -35,8 +35,8 @@ class default_case_sequence extends uvm_sequence #(ahb_master_transaction);
       if(starting_phase != null) 
          starting_phase.raise_objection(this);
 
-      repeat(90) begin
-         `uvm_do(m_trans, get_sequencer(), -1,  { m_trans.pload.size() == 60;})
+      repeat(`AHB_TRANS_TIMES) begin
+         `uvm_do(m_trans, get_sequencer(), -1)
       end
 
       #1000;
