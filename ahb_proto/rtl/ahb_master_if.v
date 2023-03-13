@@ -23,11 +23,11 @@ module ahb_master_if #(
 
     /*-----------ahb bus signal-----------*/
     output  reg  [AHB_ADDR_WIDTH-1: 0]  ahb_addr_out,
-    output  reg  ahb_burst_out,
+    output  reg  [2:0]  ahb_burst_out,
     input   [AHB_DATA_WIDTH-1: 0]  ahb_rdata_in,
     input   ahb_ready_in,
     input   ahb_resp_in,
-    output  reg  ahb_size_out,
+    output  reg  [2:0]  ahb_size_out,
 
     `ifdef  AHB_PROT
         output  reg  [ 3:0 ] ahb_prot_out,
@@ -36,13 +36,13 @@ module ahb_master_if #(
         output  reg  [(AHB_DATA_WIDTH /8) -1:0]  ahb_strb_out,
     `endif
 
-    output  reg  ahb_trans_out,
+    output  reg  [1:0]  ahb_trans_out,
     output  reg  [AHB_DATA_WIDTH-1: 0] ahb_wdata_out,
     output  reg  ahb_write_out,
 
     /*-----------other module signal----------------*/
     input   [AHB_ADDR_WIDTH -1: 0]  other_addr_in,
-    input   other_burst_in,
+    input   [2:0]  other_burst_in,
     output  other_busy_out,
     output  other_clk_out,
     input   other_delay_in,
@@ -59,7 +59,7 @@ module ahb_master_if #(
     output  reg  [AHB_DATA_WIDTH-1: 0]  other_rdata_out,
     output  reg  other_ready_out,
     input   other_sel_in,
-    input   other_size_in,
+    input   [2:0]  other_size_in,
     input   other_valid_in,    
     input   [AHB_DATA_WIDTH-1: 0]  other_wdata_in,
     input   other_write_in
