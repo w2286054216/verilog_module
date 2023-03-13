@@ -11,7 +11,7 @@
 **************************************************************************************/
 
 `include  "definition.sv"
-`include  "default_test.sv"
+`include  "default_case.sv"
 `include  "uvm_macros.svh"
 
 import uvm_pkg::*;
@@ -31,33 +31,38 @@ module top;
 
 
   master_if  vmaster_if ();
-  slave_if  vslave_ifs[0:`APB_SLAVE_DEVICES -1]();
-  apb_if  top_apb_bus( .clk(clk), .rstn(rstn));
+  slave_if  vslave_ifs[0:`ahb_SLAVE_DEVICES -1]();
+  ahb_if  top_ahb_bus( .clk(clk), .rstn(rstn));
 
-  apb_master_if #( `APB_DATA_WIDTH, ` APB_ADDR_WIDTH, `APB_SLAVE_DEVICES) apb_bus_master(
-            .apb_addr_out(top_apb_bus.addr),
-            .apb_clk_in(top_apb_bus.clk),
-            .apb_penable_out(top_apb_bus.penable),
-            .apb_prot_out(top_apb_bus.prot),
-            .apb_pselx_out(top_apb_bus.sels),
-            .apb_rdata_in(top_apb_bus.rdata),
-            .apb_ready_in(top_apb_bus.master_ready),
-            .apb_rstn_in(top_apb_bus.rstn),
-            .apb_slverr_in(top_apb_bus.master_error_in),
-            .apb_slverr_out(top_apb_bus.master_error_out),
-            .apb_strb_out(top_apb_bus.strb),
-            .apb_wdata_out(top_apb_bus.wdata),
-            .apb_write_out(top_apb_bus.write),
+  ahb_master_if #( `ahb_DATA_WIDTH, ` ahb_ADDR_WIDTH, `ahb_SLAVE_DEVICES) ahb_bus_master(
+            .ahb_addr_out(top_ahb_bus.addr),
+            .ahb_clk_in(top_ahb_bus.clk),
+            .ahb_penable_out(top_ahb_bus.penable),
+            .ahb_pselx_out(top_ahb_bus.sels),
+            .ahb_rdata_in(top_ahb_bus.rdata),
+            .ahb_ready_in(top_ahb_bus.master_ready),
+            .ahb_rstn_in(top_ahb_bus.rstn),
+            .ahb_slverr_in(top_ahb_bus.master_error_in),
+            .ahb_slverr_out(top_ahb_bus.master_error_out),
+            .ahb_wdata_out(top_ahb_bus.wdata),
+            .ahb_write_out(top_ahb_bus.write),
+
+            `ifdef  AHB_PROT
+                .ahb_prot_out(top_ahb_bus.prot),
+                .other_prot_in(vmaster_if.prot),
+            `endif
+            `ifdef  AHB_WSTRB
+                .ahb_strb_out(top_ahb_bus.strb),
+                .other_strb_in(vmaster_if.strb),
+            `endif
 
             .other_addr_in(vmaster_if.addr),
             .other_clk_out(vmaster_if.clk),
             .other_error_out(vmaster_if.master_error),
             .other_error_in(vmaster_if.other_error),
-            .other_prot_in(vmaster_if.prot),
             .other_ready_out(vmaster_if.ready),
             .other_rdata_out(vmaster_if.rdata),
             .other_sels_in(vmaster_if.sels),
-            .other_strb_in(vmaster_if.strb),
             .other_wdata_in(vmaster_if.addr),
             .other_write_in(vmaster_if.write),
             .other_valid_in(vmaster_if.valid)
@@ -66,35 +71,44 @@ module top;
 
   genvar iter;
   generate
-  for ( iter = 0;  iter < `APB_SLAVE_DEVICES;  iter++) begin
-      apb_slave_if #(`APB_DATA_WIDTH, ` APB_ADDR_WIDTH)  apb_bus_slave(
-          .apb_addr_in(top_apb_bus.addr),
-          .apb_clk_in(top_apb_bus.clk),
-          .apb_penable_in(top_apb_bus.penable),
-          .apb_prot_in(top_apb_bus.prot),
-          .apb_psel_in(top_apb_bus.sels[i]),
-          .apb_rdata_out(top_apb_bus.rdata),
-          .apb_ready_out(top_apb_bus.slave_ready[i]),
-          .apb_rstn_in(top_apb_bus.rstn),
-          .apb_strb_in(top_apb_bus.strb), 
-          .apb_slverr_out(top_apb_bus.slave_error_out[i]),
-          .apb_slverr_in(top_apb_bus.master_error_out),
-          .apb_wdata_in(top_apb_bus.wdata),
-          .apb_write_in(top_apb_bus.write),
+  for ( iter = 0;  iter < `ahb_SLAVE_DEVICES;  iter++) begin
+      ahb_slave_if #(`ahb_DATA_WIDTH, ` ahb_ADDR_WIDTH)  ahb_bus_slave(
+            .ahb_addr_in(top_ahb_bus.addr),
+            .ahb_clk_in(top_ahb_bus.clk),
+            .ahb_penable_in(top_ahb_bus.penable),
+            
+            .ahb_psel_in(top_ahb_bus.sels[i]),
+            .ahb_rdata_out(top_ahb_bus.rdata),
+            .ahb_ready_out(top_ahb_bus.slave_ready[i]),
+            .ahb_rstn_in(top_ahb_bus.rstn),
+
+            .ahb_slverr_out(top_ahb_bus.slave_error_out[i]),
+            .ahb_slverr_in(top_ahb_bus.master_error_out),
+            .ahb_wdata_in(top_ahb_bus.wdata),
+            .ahb_write_in(top_ahb_bus.write),
 
 
-          .other_addr_out(vslave_ifs[i].addr),
-          .other_clk_out(vslave_ifs[i].clk),    
-          .other_error_in(vslave_ifs[i].other_error),
-          .other_error_out(vslave_ifs[i].slave_error),    
-          .other_ready_in(vslave_ifs[i].ready),
-          .other_ready_out(vslave_ifs[i].slave_ready),
-          .other_rdata_in(vslave_ifs[i].rdata),
-          .other_sel_out(vslave_ifs[i].sel),
-          .other_strb_out(vslave_ifs[i].strb),
-          .other_wdata_out(vslave_ifs[i].wdata),
-          .other_write_out(vslave_ifs[i].write),
-          .other_prot_out(vslave_ifs[i].prot)
+            `ifdef  AHB_PROT
+                .ahb_prot_in(top_ahb_bus.prot),
+                .other_prot_out(vslave_ifs[i].prot),
+            `endif
+            `ifdef  AHB_WSTRB
+                .ahb_strb_in(top_ahb_bus.strb),
+                .other_strb_out(vslave_ifs[i].strb),
+            `endif
+
+
+            .other_addr_out(vslave_ifs[i].addr),
+            .other_clk_out(vslave_ifs[i].clk),    
+            .other_error_in(vslave_ifs[i].other_error),
+            .other_error_out(vslave_ifs[i].slave_error),    
+            .other_ready_in(vslave_ifs[i].ready),
+            .other_ready_out(vslave_ifs[i].slave_ready),
+            .other_rdata_in(vslave_ifs[i].rdata),
+            .other_sel_out(vslave_ifs[i].sel),
+            .other_wdata_out(vslave_ifs[i].wdata),
+            .other_write_out(vslave_ifs[i].write)
+          
       );
   end
   endgenerate
@@ -111,14 +125,15 @@ module top;
 
 
     initial begin
-        uvm_config_db #(VTSB_MASTER_T)::set(null, "uvm_test_top.env.master_agt.drv",  "vif_master", vmaster_if);
-        uvm_config_db #(VTSB_MASTER_T)::set(null, "uvm_test_top.env.master_agt.mon",  "vif",  input_if);
+        uvm_config_db #(VTSB_MASTER_T)::set(null, "uvm_test_top.env.m_agt.drv",  "vif",    vmaster_if);
+        uvm_config_db #(VTSB_MASTER_T)::set(null, "uvm_test_top.env.m_agt.mon",  "m_vif",  vmaster_if);
 
         for (int i = 0; i < `AHB_SLAVE_DEVICES;  i++) begin
-            uvm_config_db #(VTSB_SLAVE_T)::set(null, "uvm_test_top.env.slave_agt" `"i`"".mon",  "vif",  input_if);
+            string str;
+            $sformat(str , "uvm_test_top.env.s_agts%d",  i);
+            uvm_config_db #(VTSB_SLAVE_T)::set(null, str,  "s_vif",  vslave_ifs[i]);
         end
     end
-
 
 
 endmodule
