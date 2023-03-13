@@ -51,6 +51,7 @@ class ahb_env #(int slave_number = 4) extends uvm_env;
 
          m_agt = ahb_agent::type_id::create("master_agt", this);
          m_agt.is_active = UVM_ACTIVE;
+         m_agt.m_agt  =  1;
          magt_scb_fifo = new("magt_scb_fifo", this);        
 
          for (int i = 0; i < slave_number ; i++) begin
@@ -58,6 +59,7 @@ class ahb_env #(int slave_number = 4) extends uvm_env;
             $sformat(str, "s_agt%d" , i);
             s_agts[i] = ahb_agent::type_id::create(str, this);
             s_agts[i].is_active = UVM_PASSIVE;
+            s_agts[i].m_agt  =  0;
             $sformat(str, "sagts_scb_fifo%d", i);
             sagts_scb_fifos[i] = new(str, this);
          end
