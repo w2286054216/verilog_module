@@ -37,6 +37,7 @@ class ahb_transaction extends uvm_transaction;
     bit  [2:0] size;
     bit  [`AHB_DATA_WIDTH-1:0] wdata[$];
     bit  write;
+    bit  valid;
 
     `uvm_object_utils_begin(ahb_transaction)
         `uvm_field_int(addr, UVM_ALL_ON)
@@ -54,6 +55,7 @@ class ahb_transaction extends uvm_transaction;
         `uvm_field_int(size, UVM_ALL_ON)
         `uvm_field_queue_int(wdata, UVM_ALL_ON)
         `uvm_field_int(write, UVM_ALL_ON)
+        `uvm_field_int(valid, UVM_ALL_ON)
     `uvm_object_utils_end
 
 
