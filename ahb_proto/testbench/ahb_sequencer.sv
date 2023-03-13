@@ -19,7 +19,7 @@
 import uvm_pkg::*;
 
 
-class  ahb_sequencer  extends  uvm_sequencer #(ahb_master_transition);
+class  ahb_sequencer  extends  uvm_sequencer #(ahb_master_transaction);
    
    `uvm_component_utils(my_sequencer)
 

@@ -25,12 +25,12 @@ class ahb_scoreboard extends uvm_scoreboard;
 
     `uvm_component_utils(my_scoreboard)
 
-    ahb_transactions_queue  master_queue[$];
-    ahb_transactions_queue  slave_queue[$];
-    ahb_transactions_queue  invalid_queue[$];
+    ahb_transaction  master_queue[$];
+    ahb_transaction  slave_queue[$];
+    ahb_transaction  invalid_queue[$];
 
-    uvm_blocking_get_port #(ahb_transactions_queue)  exp_port;
-    uvm_blocking_get_port #(ahb_transactions_queue)  act_port;
+    uvm_blocking_get_port #(ahb_transaction)  exp_port;
+    uvm_blocking_get_port #(ahb_transaction)  act_port;
 
 
     function new(string name = "ahb_scoreboard", uvm_component parent = null);
@@ -47,7 +47,7 @@ class ahb_scoreboard extends uvm_scoreboard;
 
 endclass
 
-task  ahb_scoreboard::main_phase(uvm_phase phase)
+task  ahb_scoreboard::main_phase(uvm_phase phase);
 
 
 endtask
