@@ -37,11 +37,11 @@ class ahb_scoreboard extends uvm_scoreboard;
         super.new(name, parent);
     endfunction 
 
-    function build_phase(uvm_phase phase);
+    function  build_phase(uvm_phase phase);
         super.build_phase(phase);
         exp_port = new("exp_port", this);
         act_port = new("act_port", this);
-    endfunction 
+    endfunction
 
     extern virtual task main_phase(uvm_phase phase);
 
