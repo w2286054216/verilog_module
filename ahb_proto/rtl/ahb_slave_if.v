@@ -85,17 +85,17 @@ localparam  AHB_BURST_INCR16   =  3'd7;
 
 
 /*ahb slave state*/
-localparam  STATE_RST               =   0;
-localparam  STATE_TRANS_IDLE        =   1;
-localparam  STATE_TRANS_BUSY        =   2;
-localparam  STATE_TRANS_NONSEQ      =   3;
-localparam  STATE_TRANS_SEQ         =   4;
-localparam  STATE_ERROR             =   5;
+localparam  STATE_RST               =   3'd0;
+localparam  STATE_TRANS_IDLE        =   3'd1;
+localparam  STATE_TRANS_BUSY        =   3'd2;
+localparam  STATE_TRANS_NONSEQ      =   3'd3;
+localparam  STATE_TRANS_SEQ         =   3'd4;
+localparam  STATE_ERROR             =   3'd5;
 
 
 
-reg  [5:0]  ahb_state;
-reg  [5:0]  next_state;
+reg  [2:0]  ahb_state;
+reg  [2:0]  next_state;
 
 
 reg  [2:0] ahb_burst;
@@ -183,28 +183,28 @@ end
 /*FSM*/
 always @(*) begin
     if (!ahb_rstn_in)begin
-        next_state[STATE_RST]  =  1'd1;
+        next_state       =    STATE_RST;
     end
     else begin
-        case (1'd1)
-            ahb_state[STATE_RST]:begin
+        case (ahb_state)
+            STATE_RST:begin
                 if (!ahb_sel_in)
-                    next_state[STATE_RST]  =   1'd1;
+                    next_state          =   STATE_RST;
                 else  if (  !size_valid ||  ( ahb_trans_in != AHB_TRANS_NONSEQ) || !addr_valid) 
-                    next_state[STATE_ERROR] =  1'd1;
+                    next_state          =   STATE_ERROR;
                 else
-                    next_state = STATE_TRANS_NONSEQ;
+                    next_state          =   STATE_TRANS_NONSEQ;
             end
 
-            ahb_state[STATE_TRANS_IDLE]:begin
+            STATE_TRANS_IDLE:begin
                 if ( (!ahb_sel_in && trans_unready) || (ahb_sel_in && (next_trans_busy || next_trans_seq )))
-                    next_state[STATE_ERROR]  =  1'd1;
+                    next_state            =     STATE_ERROR;
                 else if (!ahb_sel_in)
-                    next_state[STATE_RST]  =  1'd1;
+                    next_state            =     STATE_RST;
                 else begin
                     case(ahb_trans_in)
-                        AHB_TRANS_NONSEQ:  next_state[STATE_TRANS_NONSEQ]  =  1'd1;
-                    default: next_state[STATE_TRANS_IDLE]  =  1'd1;
+                        AHB_TRANS_NONSEQ:  next_state        =    STATE_TRANS_NONSEQ;
+                        default: next_state                  =    STATE_TRANS_IDLE;
                     endcase
                 end
                 
@@ -213,13 +213,13 @@ always @(*) begin
             ahb_state[STATE_TRANS_BUSY]:begin
                 if (!ahb_sel_in || burst_changed || ((next_trans_idle || next_trans_nonseq || !burst_counter ) 
                     && !cur_burst_incr) ||  trans_changed  || (ahb_addr_in != burst_next_addr) )
-                    next_state[STATE_ERROR]  =  1'd1;
+                    next_state                  =    STATE_ERROR;
                 else if (next_burst_incr)begin
                     case(ahb_trans_in)
-                        AHB_TRANS_IDLE:     next_state[STATE_TRANS_IDLE]    =   1'd1;
-                        AHB_TRANS_BUSY:     next_state[STATE_TRANS_BUSY]    =   1'd1;
-                        AHB_TRANS_NONSEQ:   next_state[STATE_TRANS_NONSEQ]  =   1'd1;
-                        AHB_TRANS_SEQ:      next_state[STATE_TRANS_SEQ]     =   1'd1;
+                        AHB_TRANS_IDLE:     next_state          =   STATE_TRANS_IDLE;
+                        AHB_TRANS_BUSY:     next_state          =   STATE_TRANS_BUSY;
+                        AHB_TRANS_NONSEQ:   next_state          =   STATE_TRANS_NONSEQ;
+                        AHB_TRANS_SEQ:      next_state          =   STATE_TRANS_SEQ;
                     endcase
                 end
             end
@@ -228,13 +228,13 @@ always @(*) begin
                 if (!ahb_sel_in  || ((next_trans_busy || next_trans_seq) && !ahb_burst) ||
                     ( ( next_trans_idle ||next_trans_nonseq) && ahb_burst ) || 
                     ( ( next_trans_seq || next_trans_busy) && !ahb_burst  )  )
-                    next_state[STATE_ERROR]  =  1'd1;
+                    next_state              =   STATE_ERROR;
                 else begin
                     case(ahb_trans_in)
-                        AHB_TRANS_IDLE:     next_state[STATE_TRANS_IDLE]    =  1'd1;
-                        AHB_TRANS_BUSY:     next_state[STATE_TRANS_BUSY]    =  1'd1;
-                        AHB_TRANS_NONSEQ:   next_state[STATE_TRANS_NONSEQ]  =  1'd1;
-                        AHB_TRANS_SEQ:      next_state[STATE_TRANS_SEQ]     =  1'd1;
+                        AHB_TRANS_IDLE:     next_state          =   STATE_TRANS_IDLE;
+                        AHB_TRANS_BUSY:     next_state          =   STATE_TRANS_BUSY;
+                        AHB_TRANS_NONSEQ:   next_state          =   STATE_TRANS_NONSEQ;
+                        AHB_TRANS_SEQ:      next_state          =   STATE_TRANS_SEQ;
                     endcase
                 end
 
@@ -243,7 +243,7 @@ always @(*) begin
             ahb_state[STATE_TRANS_SEQ]:begin
                 if ( !ahb_sel_in || ((next_trans_idle || next_trans_nonseq)  && burst_counter  ) || 
                 (next_trans_seq && !burst_counter) ) 
-                    next_state[STATE_ERROR]  =  1'd1;
+                    next_state              =   STATE_ERROR;
                 else begin
                     case(ahb_trans_in)
                         AHB_TRANS_IDLE:     next_state = STATE_TRANS_IDLE;
@@ -276,8 +276,8 @@ end
 
 /*------------address control-------------*/
 always @(posedge ahb_clk_in) begin
-    case (1'd1)
-        ahb_state[STATE_RST]: begin
+    case (ahb_state)
+        STATE_RST: begin
             ahb_burst              <=   0;
             burst_counter          <=   0;
             busy_2_seq             <=   0;
@@ -303,7 +303,7 @@ always @(posedge ahb_clk_in) begin
         end
 
 
-        ahb_state[STATE_TRANS_IDLE]: begin
+        STATE_TRANS_IDLE: begin
             if (trans_unready && (other_error_in || other_ready_in))
                 trans_unready       <=  (trans_unready - 1);
             else
@@ -311,7 +311,7 @@ always @(posedge ahb_clk_in) begin
             
         end
 
-        ahb_state[STATE_TRANS_BUSY]: begin
+        STATE_TRANS_BUSY: begin
             if (trans_unready && (other_error_in || other_ready_in))
                 trans_unready       <=  (trans_unready - 1);
             else
@@ -322,7 +322,7 @@ always @(posedge ahb_clk_in) begin
         end
 
 
-        ahb_state[STATE_TRANS_NONSEQ]: begin
+        STATE_TRANS_NONSEQ: begin
 
             busy_2_seq         <=   0;
 
@@ -353,7 +353,7 @@ always @(posedge ahb_clk_in) begin
 
         end
 
-        ahb_state[STATE_TRANS_SEQ]:begin
+        STATE_TRANS_SEQ:begin
     
             other_addr_out      <=   burst_next_addr;
 
@@ -368,23 +368,23 @@ end
 /*---------------data transfer -------------*/
 always @(posedge ahb_clk_in or negedge ahb_rstn_in ) begin
 
-    case (1'd1)
-        ahb_state[STATE_RST]: begin
+    case (ahb_state)
+        STATE_RST: begin
             other_wdata_out         <=    0;
             ahb_rdata_out           <=    0;
             ahb_ready_out           <=    0;
             ahb_resp_out            <=    0;
         end
 
-        ahb_state[STATE_TRANS_IDLE]  || ahb_state[STATE_TRANS_BUSY] || ahb_state[STATE_TRANS_NONSEQ]
-            ||  ahb_state[STATE_TRANS_SEQ]: begin
+        STATE_TRANS_IDLE  || STATE_TRANS_BUSY || STATE_TRANS_NONSEQ
+            ||  STATE_TRANS_SEQ: begin
             other_wdata_out         <=    other_write_out?ahb_wdata_in:  0;
             ahb_rdata_out           <=    0;
             ahb_ready_out           <=    0;
             ahb_resp_out            <=    0;
         end
 
-        ahb_state[STATE_ERROR]: begin
+        STATE_ERROR: begin
             other_wdata_out         <=    0;
             ahb_rdata_out           <=    0;
             ahb_ready_out           <=    trans_unready[1]? 0:  1;
