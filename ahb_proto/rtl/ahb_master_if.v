@@ -196,12 +196,12 @@ always @(*) begin
             end
 
             STATE_TRANS_IDLE: begin
-                if ( ( trans_unready && ( !other_sel_in || other_error_in ) ) 
-                        ||  ahb_resp_in  || burst_counter )
+                if (  trans_unready[1] || ( trans_unready && ( !other_sel_in || other_error_in ) ) 
+                        || (!trans_unready &&( ahb_resp_in  || burst_counter)) )
                     next_state         =     STATE_ERROR;
                 else if(!other_sel_in)
                     next_state         =     STATE_RST;
-                else if ( (trans_unready  ==  2) || !other_valid_in )
+                else if (  !other_valid_in )
                     next_state         =     STATE_TRANS_IDLE;
                 else
                     next_state         =     STATE_TRANS_NONSEQ;
@@ -214,8 +214,12 @@ always @(*) begin
                     next_state          =    STATE_ERROR;
                 else  if ( other_delay_in )
                     next_state          =    STATE_TRANS_BUSY;
-                else  if ( (ahb_burst_out != AHB_BURST_INCR ) || other_valid_in)
+                else  if ( (ahb_burst_out != AHB_BURST_INCR ) || (other_valid_in && !trans_changed) || trans_unready )
                     next_state          =    STATE_TRANS_SEQ;
+                else  if( !other_valid_in)
+                    next_state          =    STATE_RST;
+                else  if(trans_changed)
+                    next_state          =    STATE_TRANS_NONSEQ;
                 else
                     next_state          =    STATE_TRANS_IDLE;
             end
@@ -251,9 +255,7 @@ always @(*) begin
             end
 
 
-            default: begin
-                next_state           =   STATE_RST;
-            end
+            default: next_state           =   STATE_RST;
         
         endcase
     end
@@ -267,7 +269,7 @@ end
 always @(negedge ahb_clk_in  or negedge ahb_rstn_in) begin
 
     if (!ahb_rstn_in)
-        ahb_state  <=  1;
+        ahb_state  <=  STATE_RST;
     else
         ahb_state  <=  next_state;
 end
@@ -276,7 +278,7 @@ end
 /*address control*/
 always @(posedge ahb_clk_in) begin
         case (ahb_state)
-           STATE_RST: begin
+            STATE_RST: begin
                 ahb_addr_out            <=   0;
                 ahb_burst_out           <=   0;
                 ahb_size_out            <=   0;
