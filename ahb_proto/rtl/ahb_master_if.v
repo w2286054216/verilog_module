@@ -151,8 +151,6 @@ endfunction
 
 
 
-
-
 /*get next burst addr*/
 always @(*) begin
 
@@ -179,7 +177,7 @@ end
 
 /*FSM*/
 always @(*) begin
-    next_state = 0;
+    next_state =  0;
     if (!ahb_rstn_in)
         next_state      =  STATE_RST;
     else begin
@@ -267,11 +265,10 @@ end
 
 /*get next state*/
 always @(negedge ahb_clk_in  or negedge ahb_rstn_in) begin
-
     if (!ahb_rstn_in)
-        ahb_state  <=  STATE_RST;
+        ahb_state       <=   STATE_RST;
     else
-        ahb_state  <=  next_state;
+        ahb_state       <=   next_state;
 end
 
 
