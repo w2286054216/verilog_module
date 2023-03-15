@@ -194,9 +194,8 @@ always @(*) begin
             end
 
             STATE_TRANS_IDLE: begin
-                if (  trans_unready[1] || ( trans_unready && ( !other_sel_in || other_error_in ) ) 
-                        || (!trans_unready &&( ahb_resp_in  || burst_counter))  
-                        || (trans_unready && ready_timeout) )
+                if (  trans_unready[1] || ( trans_unready && ( !other_sel_in || other_error_in || ready_timeout ) ) 
+                       || ahb_resp_in  || ( !trans_unready && ( burst_counter || ahb_ready_in ) ) )
                     next_state         =     STATE_ERROR;
                 else if(!other_sel_in)
                     next_state         =     STATE_RST;
@@ -208,9 +207,8 @@ always @(*) begin
             end
 
             STATE_TRANS_BUSY: begin
-                if ( !ahb_burst_out || (!other_sel_in && trans_unready) || ( (ahb_burst_out != AHB_BURST_INCR) && 
-                        ( trans_changed || !other_sel_in || !other_valid_in || !burst_counter )
-                         || (trans_unready && ready_timeout) ) 
+                if ( !ahb_burst_out || (  burst_len_fixed && ( trans_changed || !other_sel_in || !other_valid_in
+                        || !burst_counter ) )  || (trans_unready && ready_timeout) 
                         || other_error_in || ahb_resp_in )
                     next_state          =    STATE_ERROR;
                 else  if(!other_sel_in)
@@ -219,7 +217,7 @@ always @(*) begin
                     next_state          =    STATE_TRANS_IDLE;
                 else  if ( other_delay_in )
                     next_state          =    STATE_TRANS_BUSY;
-                else  if ( (ahb_burst_out != AHB_BURST_INCR ) || !trans_changed )
+                else  if ( burst_len_fixed || !trans_changed )
                     next_state          =    STATE_TRANS_SEQ;
                 else
                     next_state          =    STATE_TRANS_NONSEQ;
@@ -240,7 +238,7 @@ always @(*) begin
             end
 
             STATE_TRANS_SEQ: begin
-                if ( !other_sel_in || !ahb_burst_out ||  other_error_in || ( ahb_resp_in && !ahb_ready_in) || 
+                if ( !other_sel_in || !ahb_burst_out ||  other_error_in || ahb_resp_in || 
                     ( burst_counter && burst_len_fixed && ( trans_changed || !other_valid_in ) )
                     || (trans_unready && ready_timeout) || ( !burst_counter && burst_len_fixed && other_delay_in ) )
                     next_state         =     STATE_ERROR;
