@@ -106,7 +106,6 @@ reg  [3:0]  burst_counter;
 reg  busy_2_seq;
 reg  [$clog2(AHB_WAIT_TIMEOUT) -1: 0]  wait_counter;
 reg  [1:0]  trans_unready;
-reg  last_write;
 reg  [AHB_ADDR_WIDTH -1: 0]  burst_next_addr;
 reg  [AHB_ADDR_WIDTH -1: 0]  trans_addr;
 
@@ -136,7 +135,6 @@ wire  wrap16_bound;
 
 
 wire  cur_burst_incr;
-wire  next_burst_incr;
 
 
 
@@ -243,8 +241,8 @@ always @(*) begin
 
             STATE_TRANS_SEQ: begin
                 if ( !other_sel_in || !ahb_burst_out ||  other_error_in || ( ahb_resp_in && !ahb_ready_in) || 
-                    ( burst_counter && burst_len_fixed && ( trans_changed || !other_valid_in ) 
-                    || (trans_unready && ready_timeout)) || ( !burst_counter && burst_len_fixed && other_delay_in ) )
+                    ( burst_counter && burst_len_fixed && ( trans_changed || !other_valid_in ) )
+                    || (trans_unready && ready_timeout) || ( !burst_counter && burst_len_fixed && other_delay_in ) )
                     next_state         =     STATE_ERROR;
                 else  if (!other_valid_in)
                     next_state         =     STATE_TRANS_IDLE;
@@ -305,7 +303,6 @@ always @(posedge ahb_clk_in) begin
 
                 trans_unready           <=   0;
                 wait_counter            <=   0;
-                last_write              <=   0;
 
                 trans_addr              <=   0;
 
@@ -488,11 +485,8 @@ assign  trans_len  =  get_len(other_burst_in);
 
 assign  cur_burst_incr = ( ahb_burst_out == AHB_BURST_INCR )? 1'd1: 1'd0 ;
 
-assign  next_burst_incr = ( other_burst_in == AHB_BURST_INCR )?1'd1:1'd0;
-
-
-
-assign other_clk_out =  ahb_clk_in;
+assign  other_busy_out  =  !trans_unready[1] || ahb_ready_in ;
+assign  other_clk_out =  ahb_clk_in;
 
 assign   wrap4_bound   =  ( addr_next & ( ( ahb_size_byte << 2) - 1))?  0:  1;
 assign   wrap8_bound   =  ( addr_next & ( ( ahb_size_byte << 3) - 1))?  0:  1;
