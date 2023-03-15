@@ -120,6 +120,7 @@ wire  [AHB_ADDR_WIDTH -1: 0]  addr_other_end;
 wire  [7:0]  ahb_size_byte;
 wire  addr_valid;
 wire  burst_changed;
+wire  burst_len_fixed;
 wire  prot_changed;
 wire  size_changed;
 wire  size_valid;
@@ -224,7 +225,7 @@ always @(*) begin
             end
 
             STATE_TRANS_NONSEQ: begin
-                if (!other_sel_in || ( !other_valid_in && ( ahb_burst_out > AHB_BURST_INCR)) ||  other_error_in || 
+                if (!other_sel_in || ( !other_valid_in && burst_len_fixed) ||  other_error_in || 
                             (!ahb_burst_out && other_delay_in ) )
                     next_state              =     STATE_ERROR;
                 else  if (!other_valid_in)
@@ -239,8 +240,8 @@ always @(*) begin
 
             STATE_TRANS_SEQ: begin
                 if ( !other_sel_in || !ahb_burst_out ||  other_error_in || ( ahb_resp_in && !ahb_ready_in) || 
-                    ( burst_counter && (ahb_burst_out > AHB_BURST_INCR) && ( trans_changed || !other_valid_in ) ) 
-                    || ( !burst_counter && (ahb_burst_out > AHB_BURST_INCR) && other_delay_in ) )
+                    ( burst_counter && burst_len_fixed && ( trans_changed || !other_valid_in ) ) 
+                    || ( !burst_counter && burst_len_fixed && other_delay_in ) )
                     next_state         =     STATE_ERROR;
                 else  if (!other_valid_in)
                     next_state         =     STATE_TRANS_IDLE;
@@ -417,6 +418,7 @@ assign  addr_next  =  ( ahb_addr_out + ahb_size_byte );
 assign  ahb_size_byte  =  ( 1 <<  ahb_size_out);
 assign  addr_valid  =  ( addr_aligned || !addr_cross_bound );
 assign  burst_changed  =  ( other_burst_in  !=  ahb_burst_out);
+assign  burst_len_fixed  =  (ahb_burst_out  >  AHB_BURST_INCR);
 
 `ifdef  AHB_PROT
     assign  prot_changed  =  ( other_prot_in  != ahb_prot_out );
