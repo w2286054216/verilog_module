@@ -391,8 +391,8 @@ always @(posedge ahb_clk_in) begin
                     burst_counter      <=  burst_counter;
                 end
                 else if (burst_counter  || cur_burst_incr )begin
-                    ahb_addr_out    <=  trans_unready[1] && !other_ready_out? ahb_addr_out : burst_next_addr;
-                    burst_counter   <=  cur_burst_incr || (trans_unready[1] && !other_ready_out) ?
+                    ahb_addr_out    <=  trans_unready[1] && !ahb_ready_in? ahb_addr_out : burst_next_addr;
+                    burst_counter   <=  cur_burst_incr || (trans_unready[1] && !ahb_ready_in) ?
                                         burst_counter :  (burst_counter -1);
                 end
                 else  begin
@@ -420,18 +420,18 @@ end
 /*--------data transfer--------*/
 always @(posedge ahb_clk_in ) begin
     case  (ahb_state)
-        STATE_TRANS_IDLE: begin
+        STATE_RST: begin
             ahb_wdata_out     <=   0;
             other_ready_out   <=   0;
             other_error_out   <=   0;
             other_rdata_out   <=   0;
         end
 
-        STATE_TRANS_BUSY || STATE_TRANS_NONSEQ || 
+        STATE_TRANS_IDLE  ||  STATE_TRANS_BUSY || STATE_TRANS_NONSEQ || 
         STATE_TRANS_SEQ :begin
             ahb_wdata_out      <=   ahb_ready_in && ahb_write_out ? other_wdata_in: 0;
-            other_ready_out    <=   ahb_ready_in? 1'd1 : 1'd0;
-            other_error_out    <=   ahb_resp_in? 1'd1 : 1'd0;
+            other_ready_out    <=   ahb_ready_in;
+            other_error_out    <=   ahb_resp_in;
             other_rdata_out    <=   other_error_out? ahb_rdata_in: 0;
         end
 
@@ -445,10 +445,6 @@ always @(posedge ahb_clk_in ) begin
         default:  ;
     endcase
 end
-
-
-
-
 
 
 
