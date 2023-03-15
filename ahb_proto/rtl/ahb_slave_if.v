@@ -105,7 +105,7 @@ reg  [AHB_ADDR_WIDTH -1: 0]  burst_next_addr;
 reg  [1:0]  other_burst;
 reg  [AHB_ADDR_WIDTH -1: 0]  trans_addr;
 reg  [1:0]  trans_unready;
-reg  [$clog2(AHB_WAIT_TIMEOUT) -1: 0]  wait_timeout;
+reg  [$clog2(AHB_WAIT_TIMEOUT) -1: 0]  wait_counter;
 
 
 
@@ -131,7 +131,7 @@ wire  [2:0]  trans_len;
 wire  wrap4_bound;
 wire  wrap8_bound;
 wire  wrap16_bound;
-
+wire  ready_timeout;
 
 
 wire  next_burst_incr;
@@ -190,7 +190,7 @@ always @(*) begin
             STATE_RST:begin
                 if (!ahb_sel_in)
                     next_state          =   STATE_RST;
-                else  if (  !size_valid ||  ( ahb_trans_in != AHB_TRANS_NONSEQ) || !addr_valid) 
+                else  if (  !size_valid ||  !next_trans_nonseq || !addr_valid) 
                     next_state          =   STATE_ERROR;
                 else
                     next_state          =   STATE_TRANS_NONSEQ;
@@ -269,8 +269,11 @@ end
 //////////////////////////////////////Sequential logic//////////////////////////////////////////////////
 
 /*get next state*/
-always @(negedge ahb_clk_in) begin
-    ahb_state  <=   next_state;
+always @(negedge ahb_clk_in or negedge ahb_rstn_in) begin
+    if (!ahb_rstn_in)
+        ahb_state    <=    STATE_RST;
+    else
+        ahb_state    <=    next_state;
 end
 
 
@@ -298,7 +301,7 @@ always @(posedge ahb_clk_in) begin
 
             trans_addr             <=   0;
             trans_unready          <=   0;
-            wait_timeout           <=   0;
+            wait_counter           <=   0;
 
         end
 
@@ -401,10 +404,10 @@ end
 
 
 
-assign next_trans_idle = (ahb_trans_in == AHB_TRANS_IDLE)?1'd1:1'd0;
-assign next_trans_busy = (ahb_trans_in == AHB_TRANS_BUSY)?1'd1:1'd0;
-assign next_trans_nonseq = (ahb_trans_in == AHB_TRANS_NONSEQ)?1'd1:1'd0;
-assign next_trans_seq = (ahb_trans_in == AHB_TRANS_SEQ)?1'd1:1'd0;
+assign next_trans_idle   =  (ahb_trans_in == AHB_TRANS_IDLE);
+assign next_trans_busy   =  (ahb_trans_in == AHB_TRANS_BUSY);
+assign next_trans_nonseq  = (ahb_trans_in == AHB_TRANS_NONSEQ);
+assign next_trans_seq  =  (ahb_trans_in == AHB_TRANS_SEQ);
 
 assign  addr_aligned  =  ( ( ahb_addr_in & size_mask ) & size_byte )?  0: 1;
 assign  addr_changed  = ( burst_next_addr !=  ahb_addr_in );
@@ -414,6 +417,8 @@ assign  addr_next  =  ( other_addr_out + ahb_size_byte );
 assign  ahb_size_byte  =  ( 1 <<  other_size_out);
 assign  addr_valid  =  ( addr_aligned || !addr_cross_bound );
 assign  burst_changed  =  ( ahb_burst_in  !=  other_burst );
+
+assign  cur_burst_incr = ( other_burst == AHB_BURST_INCR ) ;
 
 `ifdef  AHB_PROT
     assign  prot_changed  =  ( other_prot_in  != ahb_prot_out );
@@ -427,20 +432,21 @@ assign  burst_changed  =  ( ahb_burst_in  !=  other_burst );
 `endif
 
 
+
+assign  ready_timeout  =  (wait_counter ==  AHB_WAIT_TIMEOUT);
+
 assign  size_byte   =  ( 1 << ahb_size_in );
 assign  size_changed  =  ( ahb_size_in  !=  other_size_out );
 assign  size_mask   =  ( size_byte  - 1 );
 assign  size_valid  =  ( size_byte  << 3 ) > AHB_DATA_WIDTH ? 0: 1;
 
 
-
 assign  trans_changed  =  addr_changed || burst_changed || prot_changed 
                         || size_changed || strb_changed;
 assign  trans_len  =  get_len(ahb_burst);
 
-assign  cur_burst_incr = ( other_burst == AHB_BURST_INCR )? 1'd1: 1'd0 ;
 
-assign  next_burst_incr = ( ahb_burst_in == AHB_BURST_INCR )?1'd1:1'd0;
+assign  next_burst_incr = ( ahb_burst_in == AHB_BURST_INCR ) ;
 
 
 
