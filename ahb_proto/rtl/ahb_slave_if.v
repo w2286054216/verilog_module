@@ -152,6 +152,7 @@ function  [2:0] get_len(input [2: 0] burst);
         AHB_BURST_INCR4   ||  AHB_BURST_WRAP4:   get_len  =  2;
         AHB_BURST_INCR8   ||  AHB_BURST_WRAP8:   get_len  =  3;
         AHB_BURST_INCR16  ||  AHB_BURST_WRAP16:  get_len  =  4;
+        default:   get_len = 0;
     endcase
 endfunction
 
@@ -355,7 +356,6 @@ always @(posedge ahb_clk_in) begin
             other_addr_out     <=   ahb_addr_in;
             other_sel_out      <=   1;
             other_size_out     <=   ahb_size_in;
-            other_wdata_out    <=   ahb_write_in?ahb_wdata_in:0;
             other_write_out    <=   ahb_write_in;
 
             `ifdef  AHB_PROT
@@ -382,7 +382,7 @@ end
 
 
 /*---------------data transfer -------------*/
-always @(posedge ahb_clk_in or negedge ahb_rstn_in ) begin
+always @(posedge ahb_clk_in) begin
     case (ahb_state)
         STATE_RST: begin
             other_wdata_out         <=    0;
