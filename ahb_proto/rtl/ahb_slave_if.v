@@ -406,10 +406,13 @@ always @(posedge ahb_clk_in) begin
             ahb_resp_out            <=    1;
         end
 
-        default: ;
-
+        default: begin
+            other_wdata_out         <=    0;
+            ahb_rdata_out           <=    0;
+            ahb_ready_out           <=    trans_unready[1]? 0:  1;
+            ahb_resp_out            <=    1;
+        end
     endcase
-
 end
 
 
