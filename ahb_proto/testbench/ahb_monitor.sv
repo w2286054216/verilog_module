@@ -26,7 +26,6 @@
 
 import  uvm_pkg::*;
 
-import  ahb_pkg::*;
 
 class ahb_monitor extends uvm_monitor;
 

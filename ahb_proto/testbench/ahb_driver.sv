@@ -22,7 +22,6 @@
 
 
 import  uvm_pkg::*;
-import  ahb_pkg::*;
 
 
 class ahb_driver extends uvm_driver;

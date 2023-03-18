@@ -12,12 +12,11 @@
 `ifndef  AHB_TRANSACTION_SV
 `define  AHB_TRANSACTION_SV
 
-
+`include  "ahb_pkg.sv"
 `include  "definition.sv"
 `include  "uvm_macros.svh"
 
 
-import  ahb_pkg::*;
 import  uvm_pkg::*;
 
 
