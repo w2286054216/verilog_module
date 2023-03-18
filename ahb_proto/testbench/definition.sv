@@ -18,9 +18,16 @@
 `define  AHB_ADDR_WIDTH    32
 `define  AHB_DATA_WIDTH    32
 
-`define  AHB_SLAVE_DEVICES   4
+`define  AHB_SLAVE_DEVICES   2
 
 `define  AHB_TRANS_TIMES      40
+
+
+`define  SLAVES_BASE_ADDR      32'h20304000
+
+`define  SLAVE1_ADDR_OFFSET    12'h400
+
+`define  SLAVE2_ADDR_OFFSET    12'h800    
 
 
 `endif

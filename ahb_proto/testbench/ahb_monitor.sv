@@ -116,7 +116,7 @@ task  ahb_monitor::slave_collect_trans();
         assert (s_tr.randomize());
 
 
-        all_len  =  get_burst_size(tr.burst);
+        all_len  =  get_burst_len(tr.burst);
         all_len  =  all_len?  all_len: s_tr.size;
         len = 0;
         while(len  < all_len)begin
@@ -184,12 +184,12 @@ task  ahb_monitor::master_collect_trans();
         if (m_vif.master_error) begin
             if (tr.write)
                 tr.wdata.push_back(m_vif.wdata);
-            
+
             ap.write(tr);            
             trans_q.pop_front();
         end
         else begin
-            all_len  =  get_burst_size(tr.burst);
+            all_len  =  get_burst_len(tr.burst);
             if (tr.write)
                 tr.wdata.push_back(m_vif.wdata);
             else
@@ -235,8 +235,8 @@ task  ahb_monitor::add_new_transaction();
         @( m_vif.addr or m_vif.burst or m_vif.delay or m_vif.other_error
             or m_vif.size or  m_vif.write or m_vif.valid);
         @(posedge m_vif.clk);
-        if ( (!m_vif.addr && !m_vif.burst && !m_vif.delay && !m_vif.other_error
-            && !m_vif.size && !m_vif.write ) || !m_vif.valid  )
+        if ( !m_vif.addr && !m_vif.burst && !m_vif.delay && !m_vif.other_error
+            && !m_vif.size && !m_vif.write  )
             return  0;
     end
     else  begin
@@ -250,6 +250,10 @@ task  ahb_monitor::add_new_transaction();
     trans_q.push_back(tr);
 
     if (mon_master) begin
+
+        if ( !m_vif.valid ||  m_vif.other_error_in || !burst_addr_valid(m_vif.addr, m_vif.burst, m_vif.size) )
+            tr.valid =  0;
+
         tr.addr   =  m_vif.addr;
         tr.burst  =  m_vif.burst;
         
