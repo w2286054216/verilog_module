@@ -66,7 +66,7 @@ module top;
                 .ahb_clk_in(decoder.clk),
                 .ahb_rstn_in(decoder.rstn),
 
-                .ahb_addr_in(vmaster_if.addr),
+                .ahb_addr_in(top_ahb_bus.addr),
                 .multi_ready_in(multip.master_ready),
                 .multi_sel_out(multip.decoder_sel),
                 .slave_sel_out(decoder.selx)
