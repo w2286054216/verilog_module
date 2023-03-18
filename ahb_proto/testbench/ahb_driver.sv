@@ -20,7 +20,7 @@
 `include  "ahb_master_transaction.sv"
 `include  "uvm_macros.svh"
 
-import  ahb_pkg::*;
+
 import  uvm_pkg::*;
 
 
@@ -104,7 +104,7 @@ endfunction
 
 task  ahb_driver::data_transfer(ahb_master_transaction tr);
 
-    int unsigned  len =  get_burst_size(tr.burst);
+    int unsigned  len =  get_burst_len(tr.burst);
     len = len?len:  tr.data_size;
 
     if ( len == 1 )begin
@@ -171,7 +171,7 @@ endtask
 
 task  ahb_driver::drive_one_pkt(ahb_master_transaction tr);
 
-    int unsigned  len = get_burst_size(tr.burst);
+    int unsigned  len = get_burst_len(tr.burst);
     len = len?len:  tr.data_size;
 
     wait(!trans_wait[1]);
@@ -185,7 +185,7 @@ task  ahb_driver::drive_one_pkt(ahb_master_transaction tr);
 
     @(posedge vif.clk);
     vif.valid        <=   0;
-    repeat(6)  @(posedge vif_master.clk);
+    repeat(6)  @(posedge vif.clk);
 
     reset_master_if();
 

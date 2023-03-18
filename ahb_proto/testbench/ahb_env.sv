@@ -49,7 +49,7 @@ class ahb_env #(int unsigned slave_number = 4) extends uvm_env;
          s_agts = new[slave_number];
          sagts_scb_fifos  = new[slave_number];
 
-         m_agt = ahb_agent::type_id::create("master_agt", this);
+         m_agt = ahb_agent::type_id::create("m_agt", this);
          m_agt.is_active = UVM_ACTIVE;
          m_agt.m_agt  =  1;
          magt_scb_fifo = new("magt_scb_fifo", this);        
@@ -71,10 +71,12 @@ class ahb_env #(int unsigned slave_number = 4) extends uvm_env;
 
    function void connect_phase(uvm_phase phase);
       super.connect_phase(phase);
-      master_agt.ap.connect(master_scb_fifo.analysis_export);
+      m_agt.ap.connect(magt_scb_fifo.analysis_export);
+      scb.act_port.connect(magt_scb_fifo.blocking_get_export);
 
       for (int i = 0; i < slave_number ; i++) begin
-         sagts_scb_fifos[i].ap.connect(slave_scb_fifos.analysis_export);
+         s_agts[i].ap.connect(sagts_scb_fifos[i].analysis_export);
+         scb.exp_port.connect(sagts_scb_fifos[i].blocking_get_export);
       end
 
    endfunction
