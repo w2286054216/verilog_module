@@ -166,13 +166,13 @@ module top;
 
 
     initial begin
-        uvm_config_db #(VTSB_MASTER_T)::set(null, "uvm_test_top.env.m_agt.drv",  "vif",    vmaster_if);
-        uvm_config_db #(VTSB_MASTER_T)::set(null, "uvm_test_top.env.m_agt.mon",  "m_vif",  vmaster_if);
+        uvm_config_db #(VTSB_MASTER_IF)::set(null, "uvm_test_top.env.m_agt.drv",  "vif",    vmaster_if);
+        uvm_config_db #(VTSB_MASTER_IF)::set(null, "uvm_test_top.env.m_agt.mon",  "m_vif",  vmaster_if);
 
         for (int i = 0; i < `AHB_SLAVE_DEVICES;  i++) begin
             string str;
             $sformat(str , "uvm_test_top.env.s_agts%d.mon",  i);
-            uvm_config_db #(VTSB_SLAVE_T)::set(null, str,  "s_vif",  vslave_ifs[i]);
+            uvm_config_db #(VTSB_SLAVE_IF)::set(null, str,  "s_vif",  vslave_ifs[i]);
         end
     end
 

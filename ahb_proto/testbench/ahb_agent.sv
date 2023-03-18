@@ -31,17 +31,9 @@ class ahb_agent extends uvm_agent;
     ahb_monitor    mon;
     bit  m_agt;
 
-   uvm_analysis_port #(ahb_transaction)  ap;
+    uvm_analysis_port #(ahb_transaction)  ap;
    
-   function new(string name, uvm_component parent);
-      super.new(name, parent);
-      `uvm_info("ahb_agent", "new is called", UVM_HIGH);
-   endfunction 
    
-   extern virtual function void build_phase(uvm_phase phase);
-   extern virtual function void connect_phase(uvm_phase phase);
-
-
     function  new(string name = "ahb_agent", uvm_component parent = null);
         super.new(name , parent);
         `uvm_info("ahb_agent", "new is called", UVM_HIGH);

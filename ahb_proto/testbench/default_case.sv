@@ -56,7 +56,7 @@ class default_case extends base_test;
       super.new(name,parent);
    endfunction
 
-   function void my_case0::build_phase(uvm_phase phase);
+   function void  build_phase(uvm_phase phase);
       super.build_phase(phase);
 
       uvm_config_db#(uvm_object_wrapper)::set(this, 
