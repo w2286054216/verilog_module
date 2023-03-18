@@ -24,8 +24,8 @@ module ahb_decoder #(
 
     input   [AHB_ADDR_WIDTH -1:0]  ahb_addr_in,
     input   multi_ready_in,
-    output  reg  [$clog2(SLAVE_DEVICES) -1:0]  multi_sel_out,
-    output  reg  [SLAVE_DEVICES: 0]  slave_sel_out
+    output  reg  [$clog2(SLAVE_DEVICES) :0]  multi_sel_out,
+    output  reg  [SLAVE_DEVICES -1: 0]  slave_sel_out
     
 );
 
@@ -38,8 +38,11 @@ localparam  SLAVE_DEVICE3 = 16'h800;
 localparam  SLAVE_DEVICE4 = 16'hc00;
 
 
-reg [AHB_ADDR_WIDTH-1: 0] addr_cur;
-reg [AHB_ADDR_WIDTH-1: 0] addr_next;
+
+reg  [AHB_ADDR_WIDTH-1: 0]  addr_cur;
+reg  [AHB_ADDR_WIDTH-1: 0]  addr_next;
+reg  [SLAVE_DEVICES -1: 0]  cur_slave_selx;
+reg  [SLAVE_DEVICES -1: 0]  next_slave_selx;
 
 wire  addr_valid;
 
@@ -51,11 +54,11 @@ wire  addr_valid;
 always @(*) begin
     slave_sel_out  =  0;
     case (addr_next[AHB_SPACE_WIDTH -1: 0])
-        SLAVE_DEVICE1: slave_sel_out  =  4'd2;
-        SLAVE_DEVICE2: slave_sel_out  =  4'd4;
-        SLAVE_DEVICE3: slave_sel_out  =  4'd8;
-        SLAVE_DEVICE4: slave_sel_out  =  4'd16;
-        default: slave_sel_out        =  addr_next? 4'd1: 4'd0;
+        SLAVE_DEVICE1: slave_sel_out  =  4'd1;
+            SLAVE_DEVICE2: next_slave_selx  =  4'd2;
+            SLAVE_DEVICE3: next_slave_selx  =  4'd4;
+            SLAVE_DEVICE4: next_slave_selx  =  4'd8;
+        default: next_slave_selx        =  0;
         
     endcase
     
@@ -64,11 +67,26 @@ end
 always @(*) begin
     multi_sel_out  =  0;
     case (addr_cur[AHB_ADDR_WIDTH-1:10])
-        SLAVE_DEVICE1: multi_sel_out =  2;
-        SLAVE_DEVICE2: multi_sel_out =  3;
-        SLAVE_DEVICE3: multi_sel_out =  4;
-        SLAVE_DEVICE4: multi_sel_out =  5;
-        default: multi_sel_out       =  addr_cur ?  1: 0;
+            SLAVE_DEVICE1: begin
+                multi_sel_out           =   2;
+                cur_slave_selx          =   1;
+            end
+            SLAVE_DEVICE2: begin
+                multi_sel_out           =   3;
+                cur_slave_selx          =   2;
+            end
+            SLAVE_DEVICE3: begin
+                multi_sel_out           =   4;
+                cur_slave_selx          =   4;
+            end
+            SLAVE_DEVICE4: begin
+                multi_sel_out           =   5;
+                cur_slave_selx          =   8;
+            end
+        default: begin
+                multi_sel_out           =   1;
+                cur_slave_selx          =   0;
+            end
         
     endcase
     
@@ -97,6 +115,7 @@ end
 
 
 assign  addr_valid  = (ahb_addr_in[AHB_ADDR_WIDTH -1: 16] ==  AHB_BASE_ADDR[AHB_ADDR_WIDTH -1: 16])?1'd1: 1'd0;
+assign  slave_sel_out  =  next_slave_selx | cur_slave_selx;
 
 
 endmodule //ahb_decoder
