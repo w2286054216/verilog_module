@@ -76,13 +76,17 @@ module top;
 
     ahb_master_if #( `AHB_DATA_WIDTH, ` AHB_ADDR_WIDTH, `AHB_SLAVE_DEVICES)
                     ahb_bus_master(
-                            .ahb_addr_out(top_ahb_bus.addr),
+
                             .ahb_clk_in(top_ahb_bus.clk),
+                            .ahb_rstn_in(top_ahb_bus.rstn),
+
+                            .ahb_addr_out(top_ahb_bus.addr),
+                            .ahb_burst_out(top_ahb_bus.burst),
                             .ahb_rdata_in(top_ahb_bus.rdata),
                             .ahb_ready_in(top_ahb_bus.master_ready),
-                            .ahb_rstn_in(top_ahb_bus.rstn),
-                            .ahb_wdata_out(top_ahb_bus.wdata),
-                            .ahb_write_out(top_ahb_bus.write),
+                            .ahb_resp_in(top_ahb_bus.resp),
+                            .ahb_size_out(top_ahb_bus.size),
+
 
                             `ifdef  AHB_PROT
                                 .ahb_prot_out(top_ahb_bus.prot),
@@ -93,16 +97,26 @@ module top;
                                 .other_strb_in(vmaster_if.strb),
                             `endif
 
+
+                            .ahb_trans_out(top_ahb_bus.trans),
+                            .ahb_wdata_out(top_ahb_bus.wdata),
+                            .ahb_write_out(top_ahb_bus.write),
+
+
                             .other_addr_in(vmaster_if.addr),
+                            .other_burst_in(vmaster_if.burst),
+                            .other_busy_out(vmaster_if.busy),
                             .other_clk_out(vmaster_if.clk),
+                            .other_delay_in(vmaster_if.delay);
                             .other_error_out(vmaster_if.master_error),
                             .other_error_in(vmaster_if.other_error),
                             .other_ready_out(vmaster_if.ready),
                             .other_rdata_out(vmaster_if.rdata),
-                            .other_sels_in(vmaster_if.sels),
+                            .other_sel_in(vmaster_if.sels),
+                            .other_valid_in(vmaster_if.valid)                            
                             .other_wdata_in(vmaster_if.addr),
-                            .other_write_in(vmaster_if.write),
-                            .other_valid_in(vmaster_if.valid)
+                            .other_write_in(vmaster_if.write)
+
                     );
 
 
@@ -110,19 +124,17 @@ module top;
     generate
     for ( iter = 0;  iter < `AHB_SLAVE_DEVICES;  iter++) begin
         ahb_slave_if #(`AHB_DATA_WIDTH, `AHB_ADDR_WIDTH)  ahb_bus_slave(
-                .ahb_addr_in(top_ahb_bus.addr),
+
                 .ahb_clk_in(top_ahb_bus.clk),
-                
-                .ahb_sel_in(decoder.selx[i]),
+                .ahb_rstn_in(top_ahb_bus.rstn),
+
+                .ahb_addr_in(top_ahb_bus.addr),
+                .ahb_burst_in(top_ahb_bus.burst),
                 .ahb_rdata_out(multip.slaves_rdata[i]),
                 .ahb_ready_out(multip.slaves_ready[i]),
                 .ahb_resp_out(multip.slaves_resp[i]),
-                .ahb_rstn_in(top_ahb_bus.rstn),
-
-
-                .ahb_wdata_in(top_ahb_bus.wdata),
-                .ahb_write_in(top_ahb_bus.write),
-
+                .ahb_sel_in(decoder.selx[i]),                
+                .ahb_size_in(top_ahb_bus.size),
 
                 `ifdef  AHB_PROT
                     .ahb_prot_in(top_ahb_bus.prot),
@@ -133,14 +145,20 @@ module top;
                     .other_strb_out(vslave_ifs[i].strb),
                 `endif
 
+                .ahb_trans_in(top_ahb_bus.trans),
+
+                .ahb_wdata_in(top_ahb_bus.wdata),
+                .ahb_write_in(top_ahb_bus.write),
+
 
                 .other_addr_out(vslave_ifs[i].addr),
                 .other_clk_out(vslave_ifs[i].clk),    
                 .other_error_in(vslave_ifs[i].other_error),
-                .other_error_out(vslave_ifs[i].slave_error),    
+                .other_error_out(vslave_ifs[i].slave_error),
+                .other_rdata_in(vslave_ifs[i].rdata),                    
                 .other_ready_in(vslave_ifs[i].ready),
-                .other_rdata_in(vslave_ifs[i].rdata),
                 .other_sel_out(vslave_ifs[i].sel),
+                .other_size_out(vslave_ifs[i].size),
                 .other_wdata_out(vslave_ifs[i].wdata),
                 .other_write_out(vslave_ifs[i].write)
             
