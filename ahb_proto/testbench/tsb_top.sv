@@ -106,13 +106,13 @@ module top;
                             .other_burst_in(vmaster_if.burst),
                             .other_busy_out(vmaster_if.busy),
                             .other_clk_out(vmaster_if.clk),
-                            .other_delay_in(vmaster_if.delay);
+                            .other_delay_in(vmaster_if.delay),
                             .other_error_out(vmaster_if.master_error),
                             .other_error_in(vmaster_if.other_error),
                             .other_ready_out(vmaster_if.ready),
                             .other_rdata_out(vmaster_if.rdata),
                             .other_sel_in(vmaster_if.sels),
-                            .other_valid_in(vmaster_if.valid)                            
+                            .other_valid_in(vmaster_if.valid),
                             .other_wdata_in(vmaster_if.addr),
                             .other_write_in(vmaster_if.write)
 

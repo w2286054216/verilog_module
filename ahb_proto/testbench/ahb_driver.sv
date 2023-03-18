@@ -104,7 +104,7 @@ endfunction
 
 task  ahb_driver::data_transfer(ahb_master_transaction tr);
 
-    int unsigned  len = get_burst_size(tr.burst);
+    int unsigned  len =  get_burst_size(tr.burst);
     len = len?len:  tr.data_size;
 
     if ( len == 1 )begin
