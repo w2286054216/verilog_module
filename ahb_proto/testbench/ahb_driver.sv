@@ -16,11 +16,11 @@
 
 `include  "definition.sv"
 `include  "master_if.sv"
-`include  "ahb_master_transaction.sv"
 `include  "ahb_pkg.sv"
+`include  "ahb_master_transaction.sv"
 `include  "uvm_macros.svh"
 
-
+import  ahb_pkg::*;
 import  uvm_pkg::*;
 
 
