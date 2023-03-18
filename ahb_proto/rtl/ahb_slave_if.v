@@ -111,7 +111,7 @@ reg  [$clog2(AHB_WAIT_TIMEOUT) -1: 0]  wait_counter;
 
 
 
-
+wire  add_new_trans;
 wire  addr_aligned;
 wire  addr_changed;
 wire  addr_cross_bound;
@@ -327,6 +327,8 @@ always @(posedge ahb_clk_in) begin
                 wait_counter        <=  (wait_counter + 1);
 
             busy_2_seq              <=  0;
+
+            other_sel_out           <=  trans_unready? 1:  0;
             
         end
 
@@ -352,28 +354,28 @@ always @(posedge ahb_clk_in) begin
 
             busy_2_seq         <=   0;
 
-            cur_burst          <=   ahb_burst_in;
-            other_addr_out     <=   ahb_addr_in;
+            cur_burst          <=   add_new_trans? ahb_burst_in : cur_burst;
+            other_addr_out     <=   add_new_trans? ahb_addr_in: other_addr_out;
             other_sel_out      <=   1;
-            other_size_out     <=   ahb_size_in;
-            other_write_out    <=   ahb_write_in;
+            other_size_out     <=   add_new_trans? ahb_size_in: other_size_out;
+            other_write_out    <=   add_new_trans? ahb_write_in: other_write_out;
 
             `ifdef  AHB_PROT
-                other_prot_out     <=    ahb_prot_in;
+                other_prot_out     <=    add_new_trans? ahb_prot_in:  other_prot_out;
             `endif
             `ifdef  AHB_WSTRB
-                other_strb_out     <=    ahb_strb_in;
+                other_strb_out     <=    add_new_trans? ahb_strb_in: other_strb_out;
             `endif
 
-            burst_counter         <=    trans_len;
+            burst_counter          <=    add_new_trans?  trans_len: burst_counter;
 
         end
 
         STATE_TRANS_SEQ:begin
     
-            other_addr_out      <=   burst_next_addr;
+            other_addr_out      <=   other_ready_in?  burst_next_addr: other_addr_out;
 
-            burst_counter       <=   cur_burst_incr? 0: (burst_counter -  1);
+            burst_counter       <=   cur_burst_incr || !other_ready_in?  burst_counter: (burst_counter -  1);
         end
             
         default: ;
@@ -419,11 +421,8 @@ end
 
 
 
-assign next_trans_idle   =  (ahb_trans_in == AHB_TRANS_IDLE);
-assign next_trans_busy   =  (ahb_trans_in == AHB_TRANS_BUSY);
-assign next_trans_nonseq  = (ahb_trans_in == AHB_TRANS_NONSEQ);
-assign next_trans_seq  =  (ahb_trans_in == AHB_TRANS_SEQ);
 
+assign  add_new_trans  =  (other_ready_in || !trans_unready[1] );
 assign  addr_aligned  =  ( ( ahb_addr_in & size_mask ) & size_byte )?  0: 1;
 assign  addr_changed  = ( burst_next_addr !=  ahb_addr_in );
 assign  addr_cross_bound  =  (addr_other_end[11:10]  != ahb_addr_in[11:10] );
@@ -434,6 +433,13 @@ assign  addr_valid  =  ( addr_aligned || !addr_cross_bound );
 assign  burst_changed  =  ( ahb_burst_in  !=  cur_burst );
 
 assign  cur_burst_incr = ( cur_burst == AHB_BURST_INCR ) ;
+
+
+assign next_trans_idle   =  (ahb_trans_in == AHB_TRANS_IDLE);
+assign next_trans_busy   =  (ahb_trans_in == AHB_TRANS_BUSY);
+assign next_trans_nonseq  = (ahb_trans_in == AHB_TRANS_NONSEQ);
+assign next_trans_seq  =  (ahb_trans_in == AHB_TRANS_SEQ);
+
 
 `ifdef  AHB_PROT
     assign  prot_changed  =  ( other_prot_out  != ahb_prot_in );
