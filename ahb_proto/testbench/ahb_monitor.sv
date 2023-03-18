@@ -251,8 +251,12 @@ task  ahb_monitor::add_new_transaction();
 
     if (mon_master) begin
 
-        if ( !m_vif.valid ||  m_vif.other_error_in || !burst_addr_valid(m_vif.addr, m_vif.burst, m_vif.size) )
-            tr.valid =  0;
+        if ( !m_vif.valid ||  m_vif.other_error_in || !burst_addr_valid(m_vif.addr, m_vif.burst, m_vif.size)
+             ||  ( m_vif.addr[`AHB_ADDR_WIDTH - 1: 12] != `SLAVES_BASE_ADDR ) || (( m_vif.addr[11: 0] != `SLAVE1_ADDR_OFFSET ) 
+             && (m_vif.addr[11: 0] != `SLAVE2_ADDR_OFFSET) ) )
+            tr.valid  =  0;
+        else
+            tr.valid  =  1;
 
         tr.addr   =  m_vif.addr;
         tr.burst  =  m_vif.burst;
