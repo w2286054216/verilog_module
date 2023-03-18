@@ -11,8 +11,8 @@
 ********************************************************************************************************/
 
 
-`ifndef  AHB_ENV_SV
-`define  AHB_ENV_SV
+`ifndef  AHB_SCOREBOARD_SV
+`define  AHB_SCOREBOARD_SV
 
 `include  "definition.sv"
 `include  "ahb_transaction.sv"
