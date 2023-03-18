@@ -14,6 +14,7 @@
 `define AHB_AGENT_SV
 
 `include  "definition.sv"
+`include  "ahb_sequencer.sv"
 `include  "ahb_driver.sv"
 `include  "ahb_monitor.sv"
 `include  "uvm_macros.svh"

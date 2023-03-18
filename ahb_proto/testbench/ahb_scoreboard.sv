@@ -23,7 +23,7 @@ import uvm_pkg::*;
 
 class ahb_scoreboard extends uvm_scoreboard;
 
-    `uvm_component_utils(my_scoreboard)
+    `uvm_component_utils(ahb_scoreboard)
 
     ahb_transaction  master_queue[$];
     ahb_transaction  slave_queue[$];

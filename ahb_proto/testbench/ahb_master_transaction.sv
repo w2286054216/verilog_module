@@ -9,8 +9,8 @@
 * Version:         0.1
 *************************************************************************************/
 
-`ifndef  AHB_TRANSACTION_SV
-`define  AHB_TRANSACTION_SV
+`ifndef  AHB_MASTER_TRANSACTION_SV
+`define  AHB_MASTER_TRANSACTION_SV
 
 `include  "ahb_pkg.sv"
 `include  "definition.sv"

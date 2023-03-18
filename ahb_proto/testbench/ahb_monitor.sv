@@ -236,7 +236,7 @@ task  ahb_monitor::add_new_transaction();
         @(posedge m_vif.clk);
         if ( !m_vif.addr && !m_vif.burst && !m_vif.delay && !m_vif.other_error
             && !m_vif.size && !m_vif.write  )
-            return  0;
+            return;
     end
     else  begin
         @(s_vif.addr or s_vif.sel or s_vif.write);

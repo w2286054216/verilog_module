@@ -34,12 +34,12 @@ module top;
 
 
     master_if  vmaster_if ();
-    slave_if  vslave_ifs[`ahb_SLAVE_DEVICES]();
+    slave_if  vslave_ifs[`AHB_SLAVE_DEVICES]();
     ahb_if  top_ahb_bus( .clk(clk), .rstn(rstn));
     decoder_if  decoder(.clk(clk), .rstn(rstn));
     multip_if   multip( .clk(clk), .rstn(rstn) );
 
-    ahb_multiplexor #( `AHB_DATA_WIDTH,  `SLAVE_DEICES) multiplexor(
+    ahb_multiplexor #( `AHB_DATA_WIDTH,  `AHB_SLAVE_DEVICES) multiplexor(
             .ahb_clk_in(multip.clk),
             .ahb_rstn_in(multip.rstn),
 
@@ -59,10 +59,9 @@ module top;
             .slave2_resp_in(vslave_ifs[1].resp)
     );
 
-    module ahb_decoder #(  `SLAVES_BASE_ADDR,    `AHB_SPACE_WIDTH,   
-                        `AHB_ADDR_WIDTH,      `SLAVE_DEVICES
-                    ) decoders
-                    (
+    ahb_decoder #(  `SLAVES_BASE_ADDR,    `AHB_SPACE_WIDTH,   
+                        `AHB_ADDR_WIDTH,      `AHB_SLAVE_DEVICES )
+                decoders (
 
                 .ahb_clk_in(decoder.clk),
                 .ahb_rstn_in(decoder.rstn),
@@ -72,7 +71,7 @@ module top;
                 .multi_sel_out(multip.decoder_sel),
                 .slave_sel_out(decoder.selx)
     
-                    );
+            );
 
 
     ahb_master_if #( `AHB_DATA_WIDTH, ` AHB_ADDR_WIDTH, `AHB_SLAVE_DEVICES)
@@ -113,8 +112,8 @@ module top;
 
     genvar iter;
     generate
-    for ( iter = 0;  iter < `ahb_SLAVE_DEVICES;  iter++) begin
-        ahb_slave_if #(`ahb_DATA_WIDTH, ` ahb_ADDR_WIDTH)  ahb_bus_slave(
+    for ( iter = 0;  iter < `AHB_SLAVE_DEVICES;  iter++) begin
+        ahb_slave_if #(`AHB_DATA_WIDTH, `AHB_ADDR_WIDTH)  ahb_bus_slave(
                 .ahb_addr_in(top_ahb_bus.addr),
                 .ahb_clk_in(top_ahb_bus.clk),
                 .ahb_penable_in(top_ahb_bus.penable),
