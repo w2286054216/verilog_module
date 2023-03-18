@@ -19,11 +19,17 @@
 interface  slave_if;
     
     bit  [`AHB_ADDR_WIDTH-1:0] addr;
+
+    `ifdef   SIMV
+        bit  [2:0]  burst;
+    `endif
+
     bit  clk;
     bit  other_error;
     bit  ready;
     bit  [`AHB_DATA_WIDTH-1:0]  rdata;
     bit  sel;
+    bit  [2:0]  size;
     bit  slave_error;
 
     `ifdef  AHB_PROT

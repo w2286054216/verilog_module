@@ -121,7 +121,7 @@ module top;
 
     genvar iter;
     generate
-    for ( iter = 0;  iter < `AHB_SLAVE_DEVICES;  iter++) begin
+    for ( iter = 0;  iter < `AHB_SLAVE_DEVICES;  iter++) begin: gen_slaves
         ahb_slave_if #(`AHB_DATA_WIDTH, `AHB_ADDR_WIDTH)  ahb_bus_slave(
 
                 .ahb_clk_in(top_ahb_bus.clk),
@@ -161,9 +161,10 @@ module top;
                 .other_wdata_out(vslave_ifs[i].wdata),
                 .other_write_out(vslave_ifs[i].write)
             
-        );
-    end
+            );
+        end
     endgenerate
+
 
     initial begin
         $vcdpluson();

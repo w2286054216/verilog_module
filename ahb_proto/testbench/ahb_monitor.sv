@@ -63,9 +63,6 @@ class ahb_monitor extends uvm_monitor;
             ap = new("ap", this);
     endfunction
 
-    function  bit is_master_transfer();
-        return !(!vif_master.addr && !vif_master.burst && !vif_master.prot && !vif_master.valid);
-    endfunction
 
     extern  task  main_phase(uvm_phase phase);
     extern  task  master_collect_trans();
@@ -121,11 +118,11 @@ task  ahb_monitor::slave_collect_trans();
         while(len  < all_len)begin
             
             s_vif.ready     <=    0;
-            if ( s_vif.slave_error || ((tr.other_error == len) && tr.other_error) )
+            if ( s_vif.slave_error )
                 break;
 
-            for (int i = 0; i < tr.ready[len]; i++)begin
-                if (tr.error[len] && (tr.error[len] == i))begin
+            for (int i = 0; i < s_tr.ready[len]; i++)begin
+                if (s_tr.error[len] && (s_tr.error[len] == i))begin
                     s_vif.other_error      <=  1;
                     break;
                 end
@@ -250,7 +247,7 @@ task  ahb_monitor::add_new_transaction();
 
     if (mon_master) begin
 
-        if ( !m_vif.valid ||  m_vif.other_error_in || !burst_addr_valid(m_vif.addr, m_vif.burst, m_vif.size)
+        if ( !m_vif.valid ||  m_vif.other_error || !burst_addr_valid(m_vif.addr, m_vif.burst, m_vif.size)
              ||  ( m_vif.addr[`AHB_ADDR_WIDTH - 1: 12] != `SLAVES_BASE_ADDR ) || (( m_vif.addr[11: 0] != `SLAVE1_ADDR_OFFSET ) 
              && (m_vif.addr[11: 0] != `SLAVE2_ADDR_OFFSET) ) )
             tr.valid  =  0;
@@ -276,7 +273,10 @@ task  ahb_monitor::add_new_transaction();
         tr.valid  =  1;
         
         tr.addr   =  s_vif.addr;
-        tr.burst  =  s_vif.burst;
+
+        `ifdef  SIMV
+            tr.burst  =  s_vif.burst;
+        `endif
         
         `ifdef  AHB_PROT
             tr.prot  =  s_vif.prot;
