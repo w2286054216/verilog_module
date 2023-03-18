@@ -17,6 +17,7 @@
 `include  "ahb_if.sv"
 `include  "uvm_macros.svh"
 
+import ahb_pkg::*;
 import uvm_pkg::*;
 
 module top;

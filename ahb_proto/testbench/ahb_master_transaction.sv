@@ -13,11 +13,13 @@
 `define  AHB_TRANSACTION_SV
 
 
-`include "definition.sv"
-`include "uvm_macros.svh"
+`include  "definition.sv"
+`include  "uvm_macros.svh"
 
-import  uvm_pkg::*;
+
 import  ahb_pkg::*;
+import  uvm_pkg::*;
+
 
 
 class  ahb_master_transaction extends uvm_sequence_item;
