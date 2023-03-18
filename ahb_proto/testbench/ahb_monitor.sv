@@ -269,6 +269,8 @@ task  ahb_monitor::add_new_transaction();
 
     end
     else begin
+
+        tr.valid  =  1;
         
         tr.addr   =  s_vif.addr;
         tr.burst  =  s_vif.burst;
