@@ -25,9 +25,11 @@
 
 `define  SLAVES_BASE_ADDR      32'h20304000
 
-`define  SLAVE1_ADDR_OFFSET    12'h400
+`define  AHB_SPACE_WIDTH       16
 
-`define  SLAVE2_ADDR_OFFSET    12'h800    
+`define  SLAVE1_ADDR_OFFSET    16'h400
+
+`define  SLAVE2_ADDR_OFFSET    16'h800    
 
 
 `endif

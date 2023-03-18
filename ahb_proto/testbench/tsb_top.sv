@@ -12,6 +12,9 @@
 
 `include  "definition.sv"
 `include  "default_case.sv"
+`include  "master_if.sv"
+`include  "slave_if.sv"
+`include  "ahb_if.sv"
 `include  "uvm_macros.svh"
 
 import uvm_pkg::*;
@@ -31,10 +34,32 @@ module top;
 
 
   master_if  vmaster_if ();
-  slave_if  vslave_ifs[0:`ahb_SLAVE_DEVICES -1]();
+  slave_if  vslave_ifs[`ahb_SLAVE_DEVICES]();
   ahb_if  top_ahb_bus( .clk(clk), .rstn(rstn));
+  decoder_if  decoder(.clk(clk), .rstn(rstn));
+  multip_if   multip( .clk(clk), .rstn(rstn) );
 
-  ahb_master_if #( `ahb_DATA_WIDTH, ` ahb_ADDR_WIDTH, `ahb_SLAVE_DEVICES) ahb_bus_master(
+  ahb_multiplexor #( `AHB_DATA_WIDTH,  `SLAVE_DEICES) multiplexor(
+
+  );
+
+  module ahb_decoder #(  `SLAVES_BASE_ADDR,    `AHB_SPACE_WIDTH,   
+                        `AHB_ADDR_WIDTH,      `SLAVE_DEVICES
+                    )
+(
+
+    .ahb_clk_in(decoder.clk),
+    .ahb_rstn_in(decoder.rstn),
+
+    .ahb_addr_in(vmaster_if.addr),
+    .multi_ready_in(multip.ready),
+    .multi_sel_out(multip.),
+    .slave_sel_out()
+    
+);
+
+
+  ahb_master_if #( `AHB_DATA_WIDTH, ` AHB_ADDR_WIDTH, `AHB_SLAVE_DEVICES) ahb_bus_master(
             .ahb_addr_out(top_ahb_bus.addr),
             .ahb_clk_in(top_ahb_bus.clk),
             .ahb_penable_out(top_ahb_bus.penable),
@@ -130,7 +155,7 @@ module top;
 
         for (int i = 0; i < `AHB_SLAVE_DEVICES;  i++) begin
             string str;
-            $sformat(str , "uvm_test_top.env.s_agts%d",  i);
+            $sformat(str , "uvm_test_top.env.s_agts%d.mon",  i);
             uvm_config_db #(VTSB_SLAVE_T)::set(null, str,  "s_vif",  vslave_ifs[i]);
         end
     end

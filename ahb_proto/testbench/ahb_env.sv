@@ -24,7 +24,7 @@
 import uvm_pkg::*;
 
 
-class ahb_env #(int slave_number = 4) extends uvm_env;
+class ahb_env #(int unsigned slave_number = 4) extends uvm_env;
    
    `uvm_component_utils(ahb_env)
 
