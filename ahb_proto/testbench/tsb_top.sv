@@ -50,7 +50,6 @@ module top;
             .decoder_sel_in(multip.decoder_sel),
 
 
-            /*------slave device output-----*/
             .slave1_rdata_in(vslave_ifs[0].rdata),    
             .slave1_readyout_in(vslave_ifs[0].ready),
             .slave1_resp_in(vslave_ifs[0].resp),
