@@ -25,7 +25,7 @@ class base_test extends uvm_test;
 
     function  void  build_phase(uvm_phase phase);
         super.build_phase(phase);
-        env  =  ahb_env::type_id::create("env", this); 
+        env  =  ahb_env #(`AHB_SLAVE_DEVICES)::type_id::create("env", this); 
     endfunction
 
     extern virtual function void report_phase(uvm_phase phase);

@@ -78,13 +78,9 @@ module top;
                     ahb_bus_master(
                             .ahb_addr_out(top_ahb_bus.addr),
                             .ahb_clk_in(top_ahb_bus.clk),
-                            .ahb_penable_out(top_ahb_bus.penable),
-                            .ahb_pselx_out(top_ahb_bus.sels),
                             .ahb_rdata_in(top_ahb_bus.rdata),
                             .ahb_ready_in(top_ahb_bus.master_ready),
                             .ahb_rstn_in(top_ahb_bus.rstn),
-                            .ahb_slverr_in(top_ahb_bus.master_error_in),
-                            .ahb_slverr_out(top_ahb_bus.master_error_out),
                             .ahb_wdata_out(top_ahb_bus.wdata),
                             .ahb_write_out(top_ahb_bus.write),
 
@@ -116,9 +112,8 @@ module top;
         ahb_slave_if #(`AHB_DATA_WIDTH, `AHB_ADDR_WIDTH)  ahb_bus_slave(
                 .ahb_addr_in(top_ahb_bus.addr),
                 .ahb_clk_in(top_ahb_bus.clk),
-                .ahb_penable_in(top_ahb_bus.penable),
                 
-                .ahb_psel_in(decoder.selx[i]),
+                .ahb_sel_in(decoder.selx[i]),
                 .ahb_rdata_out(multip.slaves_rdata[i]),
                 .ahb_ready_out(multip.slaves_ready[i]),
                 .ahb_resp_out(multip.slaves_resp[i]),
@@ -144,7 +139,6 @@ module top;
                 .other_error_in(vslave_ifs[i].other_error),
                 .other_error_out(vslave_ifs[i].slave_error),    
                 .other_ready_in(vslave_ifs[i].ready),
-                .other_ready_out(vslave_ifs[i].slave_ready),
                 .other_rdata_in(vslave_ifs[i].rdata),
                 .other_sel_out(vslave_ifs[i].sel),
                 .other_wdata_out(vslave_ifs[i].wdata),
