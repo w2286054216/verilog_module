@@ -31,11 +31,18 @@ module ahb_decoder #(
 
 
 
-/*slave devices address space*/
-localparam  SLAVE_DEVICE1 = 16'h0;
-localparam  SLAVE_DEVICE2 = 16'h400;
-localparam  SLAVE_DEVICE3 = 16'h800;
-localparam  SLAVE_DEVICE4 = 16'hc00;
+/*slave devices address offset*/
+localparam  SLAVE_DEVICE1_OFFSET = 16'h0;
+localparam  SLAVE_DEVICE2_OFFSET = 16'h400;
+localparam  SLAVE_DEVICE3_OFFSET = 16'h800;
+localparam  SLAVE_DEVICE4_OFFSET = 16'hc00;
+
+/*slave devices address*/
+localparam  SLAVE_DEVICE1_ADDR =  AHB_BASE_ADDR + SLAVE_DEVICE1_OFFSET;
+localparam  SLAVE_DEVICE2_ADDR =  AHB_BASE_ADDR + SLAVE_DEVICE1_OFFSET;
+localparam  SLAVE_DEVICE3_ADDR =  AHB_BASE_ADDR + SLAVE_DEVICE1_OFFSET;
+localparam  SLAVE_DEVICE4_ADDR =  AHB_BASE_ADDR + SLAVE_DEVICE1_OFFSET;
+
 
 
 
@@ -53,24 +60,24 @@ wire  addr_valid;
 /*get slave device sel*/
 always @(*) begin
     next_slave_selx  =  0;
-    case (addr_next[AHB_SPACE_WIDTH -1: 0])
-            SLAVE_DEVICE1: next_slave_selx  =  2'd1;
-            SLAVE_DEVICE2: next_slave_selx  =  2'd2;
+    case (addr_next[AHB_ADDR_WIDTH -1: 10])
+            SLAVE_DEVICE1_ADDR[AHB_ADDR_WIDTH -1: 10]: next_slave_selx  =  2'd1;
+            SLAVE_DEVICE2_ADDR[AHB_ADDR_WIDTH -1: 10]: next_slave_selx  =  2'd2;
             default: next_slave_selx        =  0;
-        
+
     endcase
-    
+ 
 end
 
 always @(*) begin
     multi_sel_out       =    0;
     cur_slave_selx      =    0;
-    case (addr_cur[AHB_SPACE_WIDTH -1: 0])
-            SLAVE_DEVICE1: begin
+    case (addr_cur[AHB_ADDR_WIDTH -1: 10])
+            SLAVE_DEVICE1_ADDR[AHB_ADDR_WIDTH -1: 10]: begin
                 multi_sel_out           =   2;
                 cur_slave_selx          =   1;
             end
-            SLAVE_DEVICE2: begin
+            SLAVE_DEVICE2_ADDR[AHB_ADDR_WIDTH -1: 10]: begin
                 multi_sel_out           =   3;
                 cur_slave_selx          =   2;
             end
