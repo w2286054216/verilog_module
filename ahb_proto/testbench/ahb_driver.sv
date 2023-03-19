@@ -16,7 +16,6 @@
 
 `include  "definition.sv"
 `include  "master_if.sv"
-`include  "ahb_pkg.sv"
 `include  "ahb_master_transaction.sv"
 `include  "uvm_macros.svh"
 
@@ -104,7 +103,7 @@ endfunction
 
 task  ahb_driver::data_transfer(ahb_master_transaction tr);
 
-    int unsigned  len =  get_burst_len(tr.burst);
+    int unsigned  len =  ahb_pkg::get_burst_len(tr.burst);
     len = len?len:  tr.data_size;
 
     if ( len == 1 )begin
@@ -171,7 +170,7 @@ endtask
 
 task  ahb_driver::drive_one_pkt(ahb_master_transaction tr);
 
-    int unsigned  len = get_burst_len(tr.burst);
+    int unsigned  len = ahb_pkg::get_burst_len(tr.burst);
     len = len?len:  tr.data_size;
 
     wait(!trans_wait[1]);

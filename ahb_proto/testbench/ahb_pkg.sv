@@ -9,7 +9,7 @@
 * Version:         0.1
 **************************************************************************/
 
-`ifdef  AHB_PKG_SV
+`ifndef  AHB_PKG_SV
 `define  AHB_PKG_SV
 
 package  ahb_pkg;
@@ -56,7 +56,7 @@ function  automatic  bit  burst_addr_valid(input int unsigned addr,  input ahb_b
     int unsigned  burst_len;
     bit  valid;
 
-    burst_len  = get_burst_size(burst_type);
+    burst_len  = get_burst_len(burst_type);
 
     burst_len  =  burst_len <2 ? 1: burst_len;
 

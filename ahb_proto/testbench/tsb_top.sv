@@ -11,6 +11,7 @@
 **************************************************************************************/
 
 `include  "definition.sv"
+`include  "ahb_pkg.sv"
 `include  "default_case.sv"
 `include  "master_if.sv"
 `include  "slave_if.sv"

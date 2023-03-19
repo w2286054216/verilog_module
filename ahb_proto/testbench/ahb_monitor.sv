@@ -112,7 +112,7 @@ task  ahb_monitor::slave_collect_trans();
         assert (s_tr.randomize());
 
 
-        all_len  =  get_burst_len(tr.burst);
+        all_len  =  ahb_pkg::get_burst_len(tr.burst);
         all_len  =  all_len?  all_len: s_tr.size;
         len = 0;
         while(len  < all_len)begin
@@ -185,7 +185,7 @@ task  ahb_monitor::master_collect_trans();
             trans_q.pop_front();
         end
         else begin
-            all_len  =  get_burst_len(tr.burst);
+            all_len  =  ahb_pkg::get_burst_len(tr.burst);
             if (tr.write)
                 tr.wdata.push_back(m_vif.wdata);
             else
@@ -247,7 +247,7 @@ task  ahb_monitor::add_new_transaction();
 
     if (mon_master) begin
 
-        if ( !m_vif.valid ||  m_vif.other_error || !burst_addr_valid(m_vif.addr, m_vif.burst, m_vif.size)
+        if ( !m_vif.valid ||  m_vif.other_error || !ahb_pkg::burst_addr_valid(m_vif.addr, m_vif.burst, m_vif.size)
              ||  ( m_vif.addr[`AHB_ADDR_WIDTH - 1: 12] != `SLAVES_BASE_ADDR ) || (( m_vif.addr[11: 0] != `SLAVE1_ADDR_OFFSET ) 
              && (m_vif.addr[11: 0] != `SLAVE2_ADDR_OFFSET) ) )
             tr.valid  =  0;
