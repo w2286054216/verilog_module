@@ -56,7 +56,7 @@ class ahb_monitor extends uvm_monitor;
                     `uvm_fatal("ahb_monitor", "virtual interface must be set for vif_master!!!")
             end 
             else begin
-                if(!uvm_config_db#(VTSB_MASTER_IF)::get(this, "", "s_vif", s_vif))
+                if(!uvm_config_db#(VTSB_SLAVE_IF)::get(this, "", "s_vif", s_vif))
                     `uvm_fatal("ahb_monitor", "virtual interface must be set for vif_slave!!!")
             end
             

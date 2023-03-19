@@ -46,9 +46,6 @@ class ahb_env #(int unsigned slave_number = 4) extends uvm_env;
    virtual function void build_phase(uvm_phase phase);
          super.build_phase(phase);
 
-         s_agts = new[slave_number];
-         sagts_scb_fifos  = new[slave_number];
-
          m_agt = ahb_agent::type_id::create("m_agt", this);
          m_agt.is_active = UVM_ACTIVE;
          m_agt.m_agt  =  1;

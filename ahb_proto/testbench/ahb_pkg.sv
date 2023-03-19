@@ -28,7 +28,7 @@ typedef enum bit[2:0] {
 
 
 
-function  automatic  int  unsigned get_burst_len(ahb_burst_type burst_type);
+function  automatic  int  unsigned get_burst_len(input bit[2:0] burst_type);
     
     int  unsigned len;
     
@@ -50,7 +50,7 @@ endfunction
 
 
 
-function  automatic  bit  burst_addr_valid(input int unsigned addr,  input ahb_burst_type burst_type, input bit[2:0]  size);
+function  automatic  bit  burst_addr_valid(input int unsigned addr,  input bit [2:0]  burst_type, input bit[2:0]  size);
     
     int unsigned  end_addr;
     int unsigned  burst_len;

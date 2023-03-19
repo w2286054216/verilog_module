@@ -23,7 +23,7 @@
 import  uvm_pkg::*;
 
 
-class ahb_driver extends uvm_driver;
+class ahb_driver extends uvm_driver #(ahb_master_transaction);
 
    `uvm_component_utils(ahb_driver)
     
