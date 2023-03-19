@@ -36,7 +36,7 @@ class ahb_env  extends  uvm_env;
    uvm_tlm_analysis_fifo #(ahb_transaction)  magt_scb_fifo;
    uvm_tlm_analysis_fifo #(ahb_transaction)  sagts_scb_fifos[`AHB_SLAVE_DEVICES];
 
-   function new(string name = "my_env", uvm_component parent);
+   function new(string name = "ahb_env", uvm_component parent);
       super.new(name, parent);
       `uvm_info("ahb_env", "new is called", UVM_HIGH);
    endfunction
@@ -53,7 +53,7 @@ class ahb_env  extends  uvm_env;
 
          for (int i = 0; i < `AHB_SLAVE_DEVICES ; i++) begin
             string str;
-            $sformat(str, "s_agt%d" , i);
+            $sformat(str, "s_agt%0d" , i);
             s_agts[i] = ahb_agent::type_id::create(str, this);
             s_agts[i].is_active = UVM_PASSIVE;
             s_agts[i].m_agt  =  0;

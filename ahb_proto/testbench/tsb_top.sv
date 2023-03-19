@@ -189,8 +189,8 @@ module top;
         uvm_config_db #(VTSB_MASTER_IF)::set(null, "uvm_test_top.env.m_agt.mon",  "m_vif",  vmaster_if);
 
 
-        uvm_config_db #(VTSB_SLAVE_IF)::set(null, "uvm_test_top.env.s_agts0.mon",  "s_vif",  vslave_ifs[0]);
-        uvm_config_db #(VTSB_SLAVE_IF)::set(null, "uvm_test_top.env.s_agts1.mon",  "s_vif",  vslave_ifs[1]);
+        uvm_config_db #(VTSB_SLAVE_IF)::set(null, "uvm_test_top.env.s_agt0.mon",  "s_vif",  vslave_ifs[0]);
+        uvm_config_db #(VTSB_SLAVE_IF)::set(null, "uvm_test_top.env.s_agt1.mon",  "s_vif",  vslave_ifs[1]);
 
 
     end
