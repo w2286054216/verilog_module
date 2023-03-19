@@ -114,7 +114,7 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
 end
 
 
-assign  addr_valid  = (ahb_addr_in[AHB_ADDR_WIDTH -1: 16] ==  AHB_BASE_ADDR[AHB_ADDR_WIDTH -1: 16])?1'd1: 1'd0;
+assign  addr_valid  = (ahb_addr_in[AHB_ADDR_WIDTH -1: 16] ==  AHB_BASE_ADDR[AHB_ADDR_WIDTH -1: 16]);
 assign  slave_sel_out  =  next_slave_selx | cur_slave_selx;
 
 
