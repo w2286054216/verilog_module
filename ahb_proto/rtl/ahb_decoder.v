@@ -25,7 +25,7 @@ module ahb_decoder #(
     input   [AHB_ADDR_WIDTH -1:0]  ahb_addr_in,
     input   multi_ready_in,
     output  reg  [$clog2(SLAVE_DEVICES) :0]  multi_sel_out,
-    output  reg  [SLAVE_DEVICES -1: 0]  slave_sel_out
+    output  [SLAVE_DEVICES -1: 0]  slave_sel_out
     
 );
 
@@ -52,9 +52,9 @@ wire  addr_valid;
 
 /*get slave device sel*/
 always @(*) begin
-    slave_sel_out  =  0;
+    next_slave_selx  =  0;
     case (addr_next[AHB_SPACE_WIDTH -1: 0])
-        SLAVE_DEVICE1: slave_sel_out  =  4'd1;
+        SLAVE_DEVICE1: next_slave_selx  =  4'd1;
             SLAVE_DEVICE2: next_slave_selx  =  4'd2;
             SLAVE_DEVICE3: next_slave_selx  =  4'd4;
             SLAVE_DEVICE4: next_slave_selx  =  4'd8;
