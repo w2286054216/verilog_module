@@ -77,6 +77,7 @@ task  ahb_monitor::main_phase(uvm_phase phase);
     fork
         while (1) begin
             add_new_transaction();
+            `uvm_info("ahb_monitor", "add new trans", UVM_LOW);
         end
 
         if (mon_master)
@@ -222,11 +223,41 @@ endtask
 
 task  ahb_monitor::add_new_transaction();
 
-    ahb_transaction  tr;
+    int unsigned all_len,  len;
+    bit m_burst_changed, s_burst_changed;
+    ahb_transaction  tr, prev;
 
-    if (trans_q.size() == 2)
+    m_burst_changed   =   ( m_vif.burst != prev.burst ) || (m_vif.addr != prev.addr) || (m_vif.size != prev.size)
+                        ||  (m_vif.write !=  prev.write);
+
+
+
+    `ifdef  SIMV
+        s_burst_changed   =    ( s_vif.burst !=  prev.burst ) ||  (s_vif.write !=  prev.write) 
+                                    || (s_vif.size != prev.size);
+    `else
+        s_burst_changed   =    (m_vif.write !=  prev.write)  || (s_vif.size != prev.size);
+    `endif
+
+    
+
+    prev = trans_q[0];
+    all_len  =  ahb_pkg::get_burst_len(prev.burst);
+    len  =  prev.write?  prev.wdata.size():  prev.rdata.size();
+
+    if (trans_q.size() == 2 || ( (prev.burst > ahb_pkg::AHB_BURST_INCR)  &&  (len < all_len) ) ||  
+                  ( ( (mon_master &&  !m_burst_changed ) || (!mon_master &&  !s_burst_changed ) ) && prev.burst) ) begin
+
+        if (mon_master)
+            @(posedge  m_vif.clk);
+        else
+            @(posedge  s_vif.clk);
+
         return;
+    end 
 
+
+    
     if (mon_master) begin
         @( m_vif.addr or m_vif.burst or m_vif.delay or m_vif.other_error
             or m_vif.size or  m_vif.write or m_vif.valid);
