@@ -483,7 +483,7 @@ assign  trans_len  =  get_len(other_burst_in);
 
 assign  cur_burst_incr = ( ahb_burst_out == AHB_BURST_INCR )? 1'd1: 1'd0 ;
 
-assign  other_busy_out  =  !trans_unready[1] || ahb_ready_in ;
+assign  other_busy_out  =  trans_unready[1] && !ahb_ready_in ;
 assign  other_clk_out =  ahb_clk_in;
 
 assign   wrap4_bound   =  ( addr_next & ( ( ahb_size_byte << 2) - 1))?  0:  1;

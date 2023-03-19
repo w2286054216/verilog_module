@@ -80,7 +80,7 @@ task  ahb_scoreboard::main_phase(uvm_phase phase);
                 slave_trans = slave_queue.pop_front();
                 result =  master_trans.compare(slave_trans);
                 if(result) begin 
-                    `uvm_info("my_scoreboard", "Compare SUCCESSFULLY", UVM_LOW);
+                    `uvm_info("ahb_scoreboard", "Compare SUCCESSFULLY", UVM_LOW);
                 end
                 else begin
                     `uvm_error("ahb_scoreboard", "Compare FAILED");
@@ -91,7 +91,7 @@ task  ahb_scoreboard::main_phase(uvm_phase phase);
                 end
             end
             else begin
-                `uvm_error("my_scoreboard", "Received from DUT, while Expect Queue is empty");
+                `uvm_error("ahb_scoreboard", "Received from DUT, while Expect Queue is empty");
                 $display("the unexpected  master  pkt is");
                 master_trans.print();
             end 
