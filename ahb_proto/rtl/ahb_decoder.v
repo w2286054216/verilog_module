@@ -44,12 +44,12 @@ localparam  SLAVE_DEVICE3_ADDR =  AHB_BASE_ADDR + SLAVE_DEVICE1_OFFSET;
 localparam  SLAVE_DEVICE4_ADDR =  AHB_BASE_ADDR + SLAVE_DEVICE1_OFFSET;
 
 
-
-
 reg  [AHB_ADDR_WIDTH-1: 0]  addr_cur;
 reg  [AHB_ADDR_WIDTH-1: 0]  addr_next;
 reg  [SLAVE_DEVICES -1: 0]  cur_slave_selx;
 reg  [SLAVE_DEVICES -1: 0]  next_slave_selx;
+reg  trans_unready;
+
 
 wire  addr_valid;
 
@@ -99,15 +99,18 @@ always @(posedge ahb_clk_in  or negedge ahb_rstn_in) begin
         if (!ahb_rstn_in) begin
             addr_cur            <=   0;
             addr_next           <=   0;
+            trans_unready       <=   0;
         end
         else begin
             if (multi_ready_in) begin
-                addr_cur   <=  addr_next;
-                addr_next  <=  addr_valid? ahb_addr_in: 0;
+                addr_cur         <=  addr_next;
+                addr_next        <=  addr_valid? ahb_addr_in: 0;
+                trans_unready    <=  addr_next?   1: 0;
             end
             else begin
-                addr_cur   <=  addr_cur;
-                addr_next  <=  addr_next;
+                addr_cur         <=   trans_unready? addr_cur: addr_next;
+                addr_next        <=   trans_unready? addr_next: (addr_valid ? ahb_addr_in:   0);
+                trans_unready    <=   trans_unready? trans_unready: (addr_next? 1: 0);
             end
         end
 end
