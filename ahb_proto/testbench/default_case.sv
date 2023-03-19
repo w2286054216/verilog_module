@@ -61,7 +61,7 @@ class default_case extends base_test;
       super.build_phase(phase);
 
       uvm_config_db#(uvm_object_wrapper)::set(this, 
-                                             "env.master_agt.sqr.main_phase", 
+                                             "env.m_agt.sqr.main_phase", 
                                              "default_sequence", 
                                              default_case_sequence::type_id::get());
    endfunction
