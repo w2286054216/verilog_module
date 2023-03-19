@@ -158,6 +158,7 @@ function  ahb_driver::reset_master_if();
 
     vif.sel                 <=    0;
     vif.size                <=    0;
+    vif.valid               <=    0;
     vif.write               <=    0;
 
 endfunction
@@ -187,6 +188,9 @@ task  ahb_driver::drive_one_pkt(ahb_master_transaction tr);
     @( posedge vif.clk);
 
     set_address(tr);
+
+    if (!tr.sel || !tr.valid  || (tr.other_error  == 1) )
+        return;
 
     data_transfer(tr);
 
