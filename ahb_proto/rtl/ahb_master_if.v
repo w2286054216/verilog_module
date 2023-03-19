@@ -108,7 +108,7 @@ reg  [$clog2(AHB_WAIT_TIMEOUT) -1: 0]  wait_counter;
 reg  [1:0]  trans_unready;
 reg  [AHB_ADDR_WIDTH -1: 0]  burst_next_addr;
 reg  [AHB_ADDR_WIDTH -1: 0]  trans_addr;
-
+reg  [2:0]  trans_len;
 
 wire  add_new_trans;
 wire  addr_aligned;
@@ -127,7 +127,7 @@ wire  [ 7:0 ]  size_byte;
 wire  [ 6:0 ]  size_mask;
 wire  strb_changed;
 wire  trans_changed;
-wire  [2:0]  trans_len;
+
 wire  ready_timeout;
 wire  wrap4_bound;
 wire  wrap8_bound;
@@ -140,14 +140,16 @@ wire  cur_burst_incr;
 
 ///////////////////////////Combinational logic//////////////////////////////////////////////////
 
-function  [4:0] get_len(input [2: 0] burst);
-    case(burst)
-        AHB_BURST_SINGLE || AHB_BURST_INCR:  get_len  =  1;
-        AHB_BURST_INCR4   ||  AHB_BURST_WRAP4:   get_len  =  4;
-        AHB_BURST_INCR8   ||  AHB_BURST_WRAP8:   get_len  =  8;
-        AHB_BURST_INCR16  ||  AHB_BURST_WRAP16:  get_len  =  16;
+always @(*) begin
+    trans_len  =  0;
+    case(other_burst_in)
+        AHB_BURST_SINGLE || AHB_BURST_INCR:  trans_len  =  0;
+        AHB_BURST_INCR4   ||  AHB_BURST_WRAP4:   trans_len  =  2;
+        AHB_BURST_INCR8   ||  AHB_BURST_WRAP8:   trans_len  =  3;
+        AHB_BURST_INCR16  ||  AHB_BURST_WRAP16:  trans_len  =  4;
     endcase
-endfunction
+end
+
 
 
 
@@ -389,7 +391,7 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
                     ahb_strb_out        <=  add_new_trans? other_strb_in : ahb_strb_out;
                 `endif
 
-                burst_counter       <=   add_new_trans?  get_len(other_burst_in):  burst_counter;
+                burst_counter       <=   add_new_trans?  ( 1<<trans_len ):  burst_counter;
                 busy_2_seq     <=   0;
 
                 if ( add_new_trans )
@@ -519,7 +521,6 @@ assign  size_valid  =  ( size_byte  << 3 ) > AHB_DATA_WIDTH ? 0: 1;
 
 assign  trans_changed  =  addr_changed || burst_changed || prot_changed 
                         || size_changed || strb_changed;
-assign  trans_len  =  get_len(other_burst_in);
 
 assign  cur_burst_incr = ( ahb_burst_out == AHB_BURST_INCR )? 1'd1: 1'd0 ;
 
