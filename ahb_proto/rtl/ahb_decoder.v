@@ -63,7 +63,8 @@ always @(*) begin
 end
 
 always @(*) begin
-    multi_sel_out  =  0;
+    multi_sel_out       =    0;
+    cur_slave_selx      =    0;
     case (addr_cur[AHB_SPACE_WIDTH -1: 0])
             SLAVE_DEVICE1: begin
                 multi_sel_out           =   2;
@@ -91,8 +92,6 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
         if (!ahb_rstn_in) begin
             addr_cur            <=   0;
             addr_next           <=   0;
-            cur_slave_selx      <=   0;
-            next_slave_selx     <=   0;
         end
         else begin
             if (multi_ready_in) begin
