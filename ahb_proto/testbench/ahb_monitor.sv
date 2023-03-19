@@ -77,7 +77,6 @@ task  ahb_monitor::main_phase(uvm_phase phase);
     fork
         while (1) begin
             add_new_transaction();
-            `uvm_info("ahb_monitor", "add new trans", UVM_LOW);
         end
 
         if (mon_master)
