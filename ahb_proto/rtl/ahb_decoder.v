@@ -12,7 +12,7 @@
 *********************************************************************************/
 
 module ahb_decoder #(
-        parameter  AHB_BASE_ADDR    =  32'h20304000,
+        parameter  AHB_BASE_ADDR    =  32'h20300000,
         parameter  AHB_SPACE_WIDTH  =  16,
         parameter  AHB_ADDR_WIDTH   =  32,
         parameter  SLAVE_DEVICES    =  2
@@ -114,7 +114,7 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
 end
 
 
-assign  addr_valid  = (ahb_addr_in[AHB_ADDR_WIDTH -1: 16] ==  AHB_BASE_ADDR[AHB_ADDR_WIDTH -1: 16]);
+assign  addr_valid  = (ahb_addr_in[AHB_ADDR_WIDTH -1: AHB_SPACE_WIDTH] ==  AHB_BASE_ADDR[AHB_ADDR_WIDTH -1: AHB_SPACE_WIDTH]);
 assign  slave_sel_out  =  next_slave_selx | cur_slave_selx;
 
 
