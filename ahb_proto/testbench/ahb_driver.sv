@@ -115,14 +115,18 @@ task  ahb_driver::data_transfer(ahb_master_transaction tr);
     int unsigned  len =  ahb_pkg::get_burst_len(tr.burst);
     len = len?len:  tr.data_size;
 
-    if ( len == 1 )begin
-        vif.wdata       <= tr.write? tr.wdata[0]:  0;
+
+    if (tr.write)begin
+        vif.wdata    <=  tr.write? tr.wdata[0]:  0;        
         trans_wait++;
-        return;
     end
 
 
-    for (int i = 0;  i < len; i++) begin
+    if ( len == 1 )
+        return;
+
+
+    for (int i = 1;  i < len; i++) begin
         wait(!trans_wait[1]);
         @(posedge vif.clk);
         if (tr.write)
