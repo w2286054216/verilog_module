@@ -13,7 +13,7 @@
 
 module ahb_multiplexor #(
         parameter AHB_DATA_WIDTH = 32,
-        parameter SLAVE_DEICES = 4
+        parameter SLAVE_DEICES = 2
     )
 (
 
@@ -32,21 +32,13 @@ module ahb_multiplexor #(
     input  slave1_resp_in,
     input  [AHB_DATA_WIDTH-1: 0]  slave2_rdata_in,    
     input  slave2_readyout_in,
-    input  slave2_resp_in,
-    input  [AHB_DATA_WIDTH-1: 0]  slave3_rdata_in,    
-    input  slave3_readyout_in,
-    input  slave3_resp_in,
-    input  [AHB_DATA_WIDTH-1: 0]  slave4_rdata_in,    
-    input  slave4_readyout_in,
-    input  slave4_resp_in
+    input  slave2_resp_in
     
 );
 
 localparam  SLAVE_DEFAULT =  1;
 localparam  SLAVE1_DEVICE =  2;
 localparam  SLAVE2_DEVICE =  3;
-localparam  SLAVE3_DEVICE =  4;
-localparam  SLAVE4_DEVICE =  5;
 
 
 
@@ -71,18 +63,6 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
             end
 
             SLAVE2_DEVICE:begin
-                ahb_rdata_out        <=  slave1_rdata_in;
-                ahb_ready_out        <=  slave1_readyout_in;
-                ahb_resp_out         <=  slave1_resp_in;
-            end
-
-            SLAVE3_DEVICE:begin
-                ahb_rdata_out        <=  slave1_rdata_in;
-                ahb_ready_out        <=  slave1_readyout_in;
-                ahb_resp_out         <=  slave1_resp_in;
-            end
-
-            SLAVE4_DEVICE:begin
                 ahb_rdata_out        <=  slave1_rdata_in;
                 ahb_ready_out        <=  slave1_readyout_in;
                 ahb_resp_out         <=  slave1_resp_in;

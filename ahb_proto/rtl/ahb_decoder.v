@@ -15,7 +15,7 @@ module ahb_decoder #(
         parameter  AHB_BASE_ADDR    =  32'h20304000,
         parameter  AHB_SPACE_WIDTH  =  16,
         parameter  AHB_ADDR_WIDTH   =  32,
-        parameter  SLAVE_DEVICES    =  4
+        parameter  SLAVE_DEVICES    =  2
         )
 (
 
