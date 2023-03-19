@@ -47,25 +47,12 @@ endinterface //ahb_if
 interface  decoder_if(input logic clk, rstn);
     wire  logic  [`AHB_ADDR_WIDTH-1:0] addr;
     wire  logic  [`AHB_SLAVE_DEVICES -1:0] selx;
-    wire  logic  master_ready;
     wire  logic  [$clog2(`AHB_SLAVE_DEVICES): 0]  multip_sel;
     
 endinterface // decoder_if
 
 
-interface  multip_if(input logic clk, rstn);
 
-    wire  logic  [$clog2(`AHB_SLAVE_DEVICES): 0]  decoder_sel;
-
-    wire  logic  [`AHB_DATA_WIDTH -1:0]  master_rdata;
-    wire  logic  master_ready;
-    wire  logic  master_resp;
-
-    wire  logic  [ `AHB_SLAVE_DEVICES -1 : 0 ]  slaves_ready;
-    wire  logic  [ `AHB_SLAVE_DEVICES -1 : 0 ]  slaves_resp;
-    wire  logic  [`AHB_DATA_WIDTH -1:0]  slaves_rdata[`AHB_SLAVE_DEVICES -1: 0];
-
-endinterface // multip_if
 
 
 `endif

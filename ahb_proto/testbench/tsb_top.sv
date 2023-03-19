@@ -38,17 +38,16 @@ module top;
     slave_if  vslave_ifs[`AHB_SLAVE_DEVICES]();
     ahb_if  top_ahb_bus( .clk(clk), .rstn(rstn));
     decoder_if  decoder(.clk(clk), .rstn(rstn));
-    multip_if   multip( .clk(clk), .rstn(rstn) );
 
     ahb_multiplexor #( `AHB_DATA_WIDTH,  `AHB_SLAVE_DEVICES) multiplexor(
-            .ahb_clk_in(multip.clk),
-            .ahb_rstn_in(multip.rstn),
+            .ahb_clk_in(top_ahb_bus.clk),
+            .ahb_rstn_in(top_ahb_bus.rstn),
 
-            .ahb_rdata_out(multip.master_rdata),
-            .ahb_ready_out(multip.master_ready),
-            .ahb_resp_out(multip.master_resp),    
+            .ahb_rdata_out(top_ahb_bus.m_rdata),
+            .ahb_ready_out(top_ahb_bus.m_ready),
+            .ahb_resp_out(top_ahb_bus.m_resp),    
 
-            .decoder_sel_in(multip.decoder_sel),
+            .decoder_sel_in(decoder.multip_sel),
 
             .slave1_rdata_in(top_ahb_bus.s_rdata[0]),    
             .slave1_readyout_in(top_ahb_bus.s_ready[0]),
@@ -66,8 +65,8 @@ module top;
                 .ahb_rstn_in(decoder.rstn),
 
                 .ahb_addr_in(top_ahb_bus.addr),
-                .multi_ready_in(multip.master_ready),
-                .multi_sel_out(multip.decoder_sel),
+                .multi_ready_in(top_ahb_bus.m_ready),
+                .multi_sel_out(decoder.multip_sel),
                 .slave_sel_out(decoder.selx)
     
             );
