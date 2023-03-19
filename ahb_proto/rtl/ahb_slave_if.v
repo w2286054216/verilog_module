@@ -292,136 +292,173 @@ end
 
 
 /*------------address control-------------*/
-always @(posedge ahb_clk_in) begin
-    case (ahb_state)
-        STATE_RST: begin
-            burst_counter          <=   0;
-            busy_2_seq             <=   0;
-            cur_burst              <=   0;
-            next_burst             <=   0;
-            other_addr_out         <=   0;
-            other_error_out        <=   0;
-            other_sel_out          <=   0;
-            other_size_out         <=   0;
+always @(posedge ahb_clk_in  or  negedge ahb_rstn_in) begin
+    if (!ahb_rstn_in) begin
+        burst_counter          <=   0;
+        busy_2_seq             <=   0;
+        cur_burst              <=   0;
+        next_burst             <=   0;
+        other_addr_out         <=   0;
+        other_error_out        <=   0;
+        other_sel_out          <=   0;
+        other_size_out         <=   0;
 
-            `ifdef  AHB_PROT
-                other_prot_out     <=   0;
-            `endif
-            `ifdef  AHB_WSTRB
-                other_strb_out     <=   0;
-            `endif
+        `ifdef  AHB_PROT
+            other_prot_out     <=   0;
+        `endif
+        `ifdef  AHB_WSTRB
+            other_strb_out     <=   0;
+        `endif
 
-            other_write_out        <=   0;
+        other_write_out        <=   0;
 
-            trans_addr             <=   0;
-            trans_unready          <=   0;
-            wait_counter           <=   0;
+        trans_addr             <=   0;
+        trans_unready          <=   0;
+        wait_counter           <=   0;
+    end
+    else  begin
+        case (ahb_state)
+            STATE_RST: begin
+                burst_counter          <=   0;
+                busy_2_seq             <=   0;
+                cur_burst              <=   0;
+                next_burst             <=   0;
+                other_addr_out         <=   0;
+                other_error_out        <=   0;
+                other_sel_out          <=   0;
+                other_size_out         <=   0;
 
-        end
+                `ifdef  AHB_PROT
+                    other_prot_out     <=   0;
+                `endif
+                `ifdef  AHB_WSTRB
+                    other_strb_out     <=   0;
+                `endif
 
+                other_write_out        <=   0;
 
-        STATE_TRANS_IDLE: begin
-            if (trans_unready  && other_ready_in )
-                trans_unready       <=  (trans_unready - 1);
-            else
-                trans_unready       <=  trans_unready;
+                trans_addr             <=   0;
+                trans_unready          <=   0;
+                wait_counter           <=   0;
 
-            if (trans_unready[1] && other_ready_in)
-                wait_counter        <=  wait_counter;
-            else  if (other_ready_in)
-                wait_counter        <=  0;
-            else
-                wait_counter        <=  (wait_counter + 1);
-
-            busy_2_seq              <=  0;
-
-            other_sel_out           <=  trans_unready? 1:  0;
-            
-        end
-
-        STATE_TRANS_BUSY: begin
-            if (trans_unready  && other_ready_in )
-                trans_unready       <=  (trans_unready - 1);
-            else
-                trans_unready       <=  trans_unready;
-
-            if (trans_unready[1] && other_ready_in)
-                wait_counter        <=  wait_counter;
-            else  if (other_ready_in)
-                wait_counter        <=  0;
-            else
-                wait_counter        <=  (wait_counter + 1);
-
-            busy_2_seq              <=  1;
-            
-        end
+            end
 
 
-        STATE_TRANS_NONSEQ: begin
+            STATE_TRANS_IDLE: begin
+                if (trans_unready  && other_ready_in )
+                    trans_unready       <=  (trans_unready - 1);
+                else
+                    trans_unready       <=  trans_unready;
 
-            busy_2_seq         <=   0;
+                if (trans_unready[1] && other_ready_in)
+                    wait_counter        <=  wait_counter;
+                else  if (other_ready_in)
+                    wait_counter        <=  0;
+                else
+                    wait_counter        <=  (wait_counter + 1);
 
-            cur_burst          <=   add_new_trans? ahb_burst_in : cur_burst;
-            other_addr_out     <=   add_new_trans? ahb_addr_in: other_addr_out;
-            other_sel_out      <=   1;
-            other_size_out     <=   add_new_trans? ahb_size_in: other_size_out;
-            other_write_out    <=   add_new_trans? ahb_write_in: other_write_out;
+                busy_2_seq              <=  0;
 
-            `ifdef  AHB_PROT
-                other_prot_out     <=    add_new_trans? ahb_prot_in:  other_prot_out;
-            `endif
-            `ifdef  AHB_WSTRB
-                other_strb_out     <=    add_new_trans? ahb_strb_in: other_strb_out;
-            `endif
+                other_sel_out           <=  trans_unready? 1:  0;
+                
+            end
 
-            burst_counter          <=    add_new_trans?  trans_len: burst_counter;
+            STATE_TRANS_BUSY: begin
+                if (trans_unready  && other_ready_in )
+                    trans_unready       <=  (trans_unready - 1);
+                else
+                    trans_unready       <=  trans_unready;
 
-        end
+                if (trans_unready[1] && other_ready_in)
+                    wait_counter        <=  wait_counter;
+                else  if (other_ready_in)
+                    wait_counter        <=  0;
+                else
+                    wait_counter        <=  (wait_counter + 1);
 
-        STATE_TRANS_SEQ:begin
-    
-            other_addr_out      <=   other_ready_in?  burst_next_addr: other_addr_out;
+                busy_2_seq              <=  1;
+                
+            end
 
-            burst_counter       <=   cur_burst_incr || !other_ready_in?  burst_counter: (burst_counter -  1);
-        end
-            
-        default: ;
-    endcase
+
+            STATE_TRANS_NONSEQ: begin
+
+                busy_2_seq         <=   0;
+
+                cur_burst          <=   add_new_trans? ahb_burst_in : cur_burst;
+                other_addr_out     <=   add_new_trans? ahb_addr_in: other_addr_out;
+                other_sel_out      <=   1;
+                other_size_out     <=   add_new_trans? ahb_size_in: other_size_out;
+                other_write_out    <=   add_new_trans? ahb_write_in: other_write_out;
+
+                `ifdef  AHB_PROT
+                    other_prot_out     <=    add_new_trans? ahb_prot_in:  other_prot_out;
+                `endif
+                `ifdef  AHB_WSTRB
+                    other_strb_out     <=    add_new_trans? ahb_strb_in: other_strb_out;
+                `endif
+
+                burst_counter          <=    add_new_trans?  trans_len: burst_counter;
+
+            end
+
+            STATE_TRANS_SEQ:begin
+        
+                other_addr_out      <=   other_ready_in?  burst_next_addr: other_addr_out;
+
+                burst_counter       <=   cur_burst_incr || !other_ready_in?  burst_counter: (burst_counter -  1);
+            end
+                
+            default: ;
+        endcase
+
+    end
+
 end
 
 
 /*---------------data transfer -------------*/
-always @(posedge ahb_clk_in) begin
-    case (ahb_state)
-        STATE_RST: begin
-            other_wdata_out         <=    0;
-            ahb_rdata_out           <=    0;
-            ahb_ready_out           <=    0;
-            ahb_resp_out            <=    0;
-        end
+always @(posedge ahb_clk_in  or  negedge ahb_rstn_in ) begin
+    if (!ahb_rstn_in) begin
+        other_wdata_out         <=    0;
+        ahb_rdata_out           <=    0;
+        ahb_ready_out           <=    0;
+        ahb_resp_out            <=    0;
+    end
+    else begin
+        case (ahb_state)
+            STATE_RST: begin
+                other_wdata_out         <=    0;
+                ahb_rdata_out           <=    0;
+                ahb_ready_out           <=    0;
+                ahb_resp_out            <=    0;
+            end
 
-        STATE_TRANS_IDLE  || STATE_TRANS_BUSY || STATE_TRANS_NONSEQ
-            ||  STATE_TRANS_SEQ: begin
-            other_wdata_out         <=    !other_write_out || other_error_in ? 0:  ahb_wdata_in;
-            ahb_rdata_out           <=    other_write_out  || other_error_in ? 0:  other_rdata_in;
-            ahb_ready_out           <=    other_ready_in;
-            ahb_resp_out            <=    other_error_in;
-        end
+            STATE_TRANS_IDLE  || STATE_TRANS_BUSY || STATE_TRANS_NONSEQ
+                ||  STATE_TRANS_SEQ: begin
+                other_wdata_out         <=    !other_write_out || other_error_in ? 0:  ahb_wdata_in;
+                ahb_rdata_out           <=    other_write_out  || other_error_in ? 0:  other_rdata_in;
+                ahb_ready_out           <=    other_ready_in;
+                ahb_resp_out            <=    other_error_in;
+            end
 
-        STATE_ERROR: begin
-            other_wdata_out         <=    0;
-            ahb_rdata_out           <=    0;
-            ahb_ready_out           <=    trans_unready[1]? 0:  1;
-            ahb_resp_out            <=    1;
-        end
+            STATE_ERROR: begin
+                other_wdata_out         <=    0;
+                ahb_rdata_out           <=    0;
+                ahb_ready_out           <=    trans_unready[1]? 0:  1;
+                ahb_resp_out            <=    1;
+            end
 
-        default: begin
-            other_wdata_out         <=    0;
-            ahb_rdata_out           <=    0;
-            ahb_ready_out           <=    trans_unready[1]? 0:  1;
-            ahb_resp_out            <=    1;
-        end
-    endcase
+            default: begin
+                other_wdata_out         <=    0;
+                ahb_rdata_out           <=    0;
+                ahb_ready_out           <=    trans_unready[1]? 0:  1;
+                ahb_resp_out            <=    1;
+            end
+        endcase
+
+    end
+
 end
 
 
