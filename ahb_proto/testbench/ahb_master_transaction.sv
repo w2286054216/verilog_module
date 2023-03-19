@@ -42,7 +42,7 @@ class  ahb_master_transaction extends uvm_sequence_item;
 
     rand  bit  write;
 
-    constraint  addr_range  { addr[`AHB_ADDR_WIDTH-1:12] == 20'h20380;}
+    constraint  addr_range  { addr[`AHB_ADDR_WIDTH-1: `AHB_SPACE_WIDTH] == 16'h2030;}
     constraint  wdata_range { foreach(wdata[i]) wdata[i][15: 0] == 16'h0340; }
 
     constraint  wdata_size {  write -> (wdata.size == 16);  }

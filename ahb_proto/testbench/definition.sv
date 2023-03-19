@@ -23,7 +23,7 @@
 `define  AHB_TRANS_TIMES      40
 
 
-`define  SLAVES_BASE_ADDR      16'h2030
+`define  SLAVES_BASE_ADDR      32'h20300000
 
 `define  AHB_SPACE_WIDTH       16
 
