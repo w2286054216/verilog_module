@@ -54,11 +54,9 @@ wire  addr_valid;
 always @(*) begin
     next_slave_selx  =  0;
     case (addr_next[AHB_SPACE_WIDTH -1: 0])
-        SLAVE_DEVICE1: next_slave_selx  =  4'd1;
-            SLAVE_DEVICE2: next_slave_selx  =  4'd2;
-            SLAVE_DEVICE3: next_slave_selx  =  4'd4;
-            SLAVE_DEVICE4: next_slave_selx  =  4'd8;
-        default: next_slave_selx        =  0;
+            SLAVE_DEVICE1: next_slave_selx  =  2'd1;
+            SLAVE_DEVICE2: next_slave_selx  =  2'd2;
+            default: next_slave_selx        =  0;
         
     endcase
     
@@ -75,17 +73,10 @@ always @(*) begin
                 multi_sel_out           =   3;
                 cur_slave_selx          =   2;
             end
-            SLAVE_DEVICE3: begin
-                multi_sel_out           =   4;
-                cur_slave_selx          =   4;
-            end
-            SLAVE_DEVICE4: begin
-                multi_sel_out           =   5;
-                cur_slave_selx          =   8;
-            end
-        default: begin
-                multi_sel_out           =   1;
-                cur_slave_selx          =   0;
+
+            default: begin
+                    multi_sel_out           =   1;
+                    cur_slave_selx          =   0;
             end
         
     endcase
@@ -98,8 +89,10 @@ end
 
 always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
         if (!ahb_rstn_in) begin
-            addr_cur   <=  0;
-            addr_next  <=  0;
+            addr_cur            <=   0;
+            addr_next           <=   0;
+            cur_slave_selx      <=   0;
+            next_slave_selx     <=   0;
         end
         else begin
             if (multi_ready_in) begin
