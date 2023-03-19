@@ -73,19 +73,28 @@ function  void  ahb_driver::set_address(ahb_master_transaction tr);
     else
         vif.other_error         <=  repeat(tr.other_error - 1) @(posedge vif.clk) 1;
     
-    if (tr.sel == 1)
-        vif.sel         <=   ~vif.sel;
-    else if (!tr.sel)
-        vif.sel         <=   vif.sel;
-    else
-        vif.sel         <=  repeat(tr.sel - 1) @(posedge vif.clk) ~vif.sel;
+    vif.sel             <=    1;
+    if (tr.sel ==  1)
+        vif.sel         <=    1;
+    else  if(!tr.sel)
+        vif.sel         <=    0;
+    else begin
+        vif.sel         <=    1;
+        vif.sel         <=    repeat(tr.other_error - 1) @(posedge vif.clk) 0;
+    end
+    
+
 
     if (tr.valid == 1)
-        vif.sel         <=   ~vif.valid;
-    else if (!tr.valid)
-        vif.valid         <=   vif.valid;
-    else
-        vif.valid         <=  repeat(tr.valid - 1) @(posedge vif.clk) ~vif.valid;
+        vif.valid         <=  1;
+    else  if(!tr.valid)
+        vif.valid         <=  0;
+    else begin
+        vif.valid         <=  1;
+        vif.valid         <=  repeat(tr.valid - 1) @(posedge vif.clk) 0;
+    end
+        
+    
 
     `ifdef  AHB_PROT
         vif.prot           <=  tr.prot;
@@ -147,6 +156,7 @@ function  ahb_driver::reset_master_if();
         vif.strb            <=    0;
     `endif
 
+    vif.sel                 <=    0;
     vif.size                <=    0;
     vif.write               <=    0;
 
