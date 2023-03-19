@@ -440,6 +440,11 @@ assign  burst_changed  =  ( ahb_burst_in  !=  cur_burst );
 assign  cur_burst_incr = ( cur_burst == AHB_BURST_INCR ) ;
 
 
+`ifdef  SIMV
+    assign  other_burst_out  =  cur_burst;
+`endif
+
+
 assign next_trans_idle   =  (ahb_trans_in == AHB_TRANS_IDLE);
 assign next_trans_busy   =  (ahb_trans_in == AHB_TRANS_BUSY);
 assign next_trans_nonseq  = (ahb_trans_in == AHB_TRANS_NONSEQ);
