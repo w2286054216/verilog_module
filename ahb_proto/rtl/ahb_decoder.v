@@ -64,7 +64,7 @@ end
 
 always @(*) begin
     multi_sel_out  =  0;
-    case (addr_cur[AHB_ADDR_WIDTH-1:10])
+    case (addr_cur[AHB_SPACE_WIDTH -1: 0])
             SLAVE_DEVICE1: begin
                 multi_sel_out           =   2;
                 cur_slave_selx          =   1;
