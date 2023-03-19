@@ -178,7 +178,7 @@ module top;
     end
 
     initial begin
-        run_test("default_test");
+        run_test("default_case");
     end
 
 
