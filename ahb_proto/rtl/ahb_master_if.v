@@ -102,7 +102,7 @@ reg  [2:0]  next_state;
 
 
 
-reg  [3:0]  burst_counter;
+reg  [4:0]  burst_counter;
 reg  busy_2_seq;
 reg  [$clog2(AHB_WAIT_TIMEOUT) -1: 0]  wait_counter;
 reg  [1:0]  trans_unready;
@@ -140,12 +140,12 @@ wire  cur_burst_incr;
 
 ///////////////////////////Combinational logic//////////////////////////////////////////////////
 
-function  [2:0] get_len(input [2: 0] burst);
+function  [4:0] get_len(input [2: 0] burst);
     case(burst)
-        AHB_BURST_SINGLE || AHB_BURST_INCR:  get_len  =  0;
-        AHB_BURST_INCR4   ||  AHB_BURST_WRAP4:   get_len  =  2;
-        AHB_BURST_INCR8   ||  AHB_BURST_WRAP8:   get_len  =  3;
-        AHB_BURST_INCR16  ||  AHB_BURST_WRAP16:  get_len  =  4;
+        AHB_BURST_SINGLE || AHB_BURST_INCR:  get_len  =  1;
+        AHB_BURST_INCR4   ||  AHB_BURST_WRAP4:   get_len  =  4;
+        AHB_BURST_INCR8   ||  AHB_BURST_WRAP8:   get_len  =  8;
+        AHB_BURST_INCR16  ||  AHB_BURST_WRAP16:  get_len  =  16;
     endcase
 endfunction
 
@@ -389,7 +389,7 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
                     ahb_strb_out        <=  add_new_trans? other_strb_in : ahb_strb_out;
                 `endif
 
-                burst_counter       <=   add_new_trans?  (1 << get_len(other_burst_in)) - 1:  burst_counter;
+                burst_counter       <=   add_new_trans?  get_len(other_burst_in):  burst_counter;
                 busy_2_seq     <=   0;
 
                 if ( add_new_trans )
