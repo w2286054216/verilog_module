@@ -48,7 +48,7 @@ module ahb_slave_if #(  parameter   AHB_DATA_WIDTH    = 32,
     output  reg  [AHB_ADDR_WIDTH -1:0]  other_addr_out,
 
     `ifdef  SIMV
-        output reg [2:0]  other_burst_out,
+        output [2:0]  other_burst_out,
     `endif
 
     output  other_clk_out,
