@@ -281,7 +281,32 @@ end
 
 
 /*address control*/
-always @(posedge ahb_clk_in) begin
+always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
+
+    if (!ahb_rstn_in) begin
+
+        ahb_addr_out            <=   0;
+        ahb_burst_out           <=   0;
+        ahb_size_out            <=   0;
+        ahb_trans_out           <=   0;
+        ahb_write_out           <=   0;
+    
+        `ifdef   AHB_PROT
+            ahb_prot_out            <=   0;
+        `endif
+        `ifdef   AHB_WSTRB
+            ahb_strb_out            <=   0;
+        `endif
+
+        burst_counter           <=   0;
+        busy_2_seq              <=   0;
+
+        trans_unready           <=   0;
+        wait_counter            <=   0;
+
+        trans_addr              <=   0;
+        
+    end  begin
         case (ahb_state)
             STATE_RST: begin
                 ahb_addr_out            <=   0;
@@ -409,36 +434,51 @@ always @(posedge ahb_clk_in) begin
 
         endcase
 
+    end
+
 end
 
 
 /*--------data transfer--------*/
-always @(posedge ahb_clk_in ) begin
-    case  (ahb_state)
-        STATE_RST: begin
-            ahb_wdata_out     <=   0;
-            other_ready_out   <=   0;
-            other_error_out   <=   0;
-            other_rdata_out   <=   0;
-        end
+always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
 
-        STATE_TRANS_IDLE  ||  STATE_TRANS_BUSY || STATE_TRANS_NONSEQ || 
-        STATE_TRANS_SEQ :begin
-            ahb_wdata_out      <=   ahb_ready_in && ahb_write_out ? other_wdata_in: 0;
-            other_ready_out    <=   ahb_ready_in;
-            other_error_out    <=   ahb_resp_in;
-            other_rdata_out    <=   other_error_out? ahb_rdata_in: 0;
-        end
+    if (!ahb_rstn_in) begin
+        
+        ahb_wdata_out     <=   0;
+        other_ready_out   <=   0;
+        other_error_out   <=   0;
+        other_rdata_out   <=   0;
+        
+    end
+    else begin
+        case  (ahb_state)
+            STATE_RST: begin
+                ahb_wdata_out     <=   0;
+                other_ready_out   <=   0;
+                other_error_out   <=   0;
+                other_rdata_out   <=   0;
+            end
 
-        STATE_ERROR:begin
-            ahb_wdata_out    <=   0;
-            other_ready_out  <=   1;
-            other_error_out  <=   1;
-            other_rdata_out  <=   0;
-        end
+            STATE_TRANS_IDLE  ||  STATE_TRANS_BUSY || STATE_TRANS_NONSEQ || 
+            STATE_TRANS_SEQ :begin
+                ahb_wdata_out      <=   ahb_ready_in && ahb_write_out ? other_wdata_in: 0;
+                other_ready_out    <=   ahb_ready_in;
+                other_error_out    <=   ahb_resp_in;
+                other_rdata_out    <=   other_error_out? ahb_rdata_in: 0;
+            end
 
-        default:  ;
-    endcase
+            STATE_ERROR:begin
+                ahb_wdata_out    <=   0;
+                other_ready_out  <=   1;
+                other_error_out  <=   1;
+                other_rdata_out  <=   0;
+            end
+
+            default:  ;
+        endcase
+
+    end
+
 end
 
 
