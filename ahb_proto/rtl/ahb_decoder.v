@@ -83,7 +83,7 @@ always @(*) begin
             end
 
             default: begin
-                    multi_sel_out           =   1;
+                    multi_sel_out           =   addr_cur? 1: 0;
                     cur_slave_selx          =   0;
             end
         
