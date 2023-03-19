@@ -24,17 +24,17 @@
 import uvm_pkg::*;
 
 
-class ahb_env #(int unsigned slave_number = 4) extends uvm_env;
+class ahb_env  extends  uvm_env;
    
    `uvm_component_utils(ahb_env)
 
    ahb_agent  m_agt;
-   ahb_agent  s_agts[slave_number];
+   ahb_agent  s_agts[`AHB_SLAVE_DEVICES];
    ahb_scoreboard  scb;
 
 
    uvm_tlm_analysis_fifo #(ahb_transaction)  magt_scb_fifo;
-   uvm_tlm_analysis_fifo #(ahb_transaction)  sagts_scb_fifos[slave_number];
+   uvm_tlm_analysis_fifo #(ahb_transaction)  sagts_scb_fifos[`AHB_SLAVE_DEVICES];
 
    function new(string name = "my_env", uvm_component parent);
       super.new(name, parent);
@@ -51,7 +51,7 @@ class ahb_env #(int unsigned slave_number = 4) extends uvm_env;
          m_agt.m_agt  =  1;
          magt_scb_fifo = new("magt_scb_fifo", this);        
 
-         for (int i = 0; i < slave_number ; i++) begin
+         for (int i = 0; i < `AHB_SLAVE_DEVICES ; i++) begin
             string str;
             $sformat(str, "s_agt%d" , i);
             s_agts[i] = ahb_agent::type_id::create(str, this);
@@ -71,7 +71,7 @@ class ahb_env #(int unsigned slave_number = 4) extends uvm_env;
       m_agt.ap.connect(magt_scb_fifo.analysis_export);
       scb.act_port.connect(magt_scb_fifo.blocking_get_export);
 
-      for (int i = 0; i < slave_number ; i++) begin
+      for (int i = 0; i < `AHB_SLAVE_DEVICES ; i++) begin
          s_agts[i].ap.connect(sagts_scb_fifos[i].analysis_export);
          scb.exp_port.connect(sagts_scb_fifos[i].blocking_get_export);
       end
