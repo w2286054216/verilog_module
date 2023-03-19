@@ -31,6 +31,7 @@
 
 `define  SLAVE2_ADDR_OFFSET    16'h800    
 
+`define  SIMV
 
 `endif
 

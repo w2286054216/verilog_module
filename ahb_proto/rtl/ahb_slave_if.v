@@ -12,6 +12,8 @@
 * Version:         0.1
 ******************************************************************************/
 
+`define  SIMV
+
 module ahb_slave_if #(  parameter   AHB_DATA_WIDTH    = 32,
                         parameter   AHB_ADDR_WIDTH    = 32,
                         parameter   AHB_WAIT_TIMEOUT  =  6
