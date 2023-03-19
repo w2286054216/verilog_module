@@ -112,6 +112,7 @@ module top;
                             .other_ready_out(vmaster_if.ready),
                             .other_rdata_out(vmaster_if.rdata),
                             .other_sel_in(vmaster_if.sel),
+                            .other_size_in(vmaster_if.size),
                             .other_valid_in(vmaster_if.valid),
                             .other_wdata_in(vmaster_if.addr),
                             .other_write_in(vmaster_if.write)
@@ -151,7 +152,12 @@ module top;
 
 
                 .other_addr_out(vslave_ifs[iter].addr),
-                .other_clk_out(vslave_ifs[iter].clk),    
+
+                `ifdef  SIMV
+                    .other_burst_out(vslave_ifs[iter].burst),
+                `endif
+
+                .other_clk_out(vslave_ifs[iter].clk),
                 .other_error_in(vslave_ifs[iter].other_error),
                 .other_error_out(vslave_ifs[iter].slave_error),
                 .other_rdata_in(vslave_ifs[iter].rdata),                    
