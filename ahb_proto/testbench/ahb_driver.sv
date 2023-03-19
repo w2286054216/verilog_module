@@ -73,7 +73,7 @@ function  void  ahb_driver::set_address(ahb_master_transaction tr);
     else
         vif.other_error         <=  repeat(tr.other_error - 1) @(posedge vif.clk) 1;
     
-    vif.sel             <=    1;
+
     if (tr.sel ==  1)
         vif.sel         <=    1;
     else  if(!tr.sel)
@@ -127,10 +127,10 @@ task  ahb_driver::data_transfer(ahb_master_transaction tr);
 
 
     for (int i = 1;  i < len; i++) begin
-        wait(!trans_wait[1]);
+        wait(!trans_wait[1] || vif.ready);
         @(posedge vif.clk);
-        if (tr.write)
-            vif.wdata    <=  tr.wdata[i];
+        if (tr.write )
+            vif.wdata    <=  !vif.master_error && !vif.other_error ? tr.wdata[i]: 0;
 
         trans_wait++;
 
@@ -138,7 +138,8 @@ task  ahb_driver::data_transfer(ahb_master_transaction tr);
             continue;
 
         wait( vif.ready == 1'd1);
-        if (vif.master_error || vif.other_error)
+        @(posedge vif.clk);
+        if (vif.master_error || vif.other_error || !vif.sel  || !vif.valid)
                 break;
         trans_wait--;
     end
@@ -188,12 +189,12 @@ task  ahb_driver::drive_one_pkt(ahb_master_transaction tr);
     int unsigned  len = ahb_pkg::get_burst_len(tr.burst);
     len = len?len:  tr.data_size;
 
-    wait( !trans_wait[1] && !vif.busy );
+    wait( !trans_wait[1] || !vif.busy  );
     @( posedge vif.clk);
 
     set_address(tr);
 
-    if (!tr.sel || !tr.valid  || (tr.other_error  == 1) )
+    if (!tr.sel || !tr.valid )
         return;
 
     data_transfer(tr);
@@ -201,10 +202,13 @@ task  ahb_driver::drive_one_pkt(ahb_master_transaction tr);
     if (len == 1) return;
 
     @(posedge vif.clk);
+
+
     vif.valid        <=   0;
     repeat(6)  @(posedge vif.clk);
 
     reset_master_if();
+    trans_wait    =   0;
 
    `uvm_info("ahb_driver", "end drive one pkt", UVM_HIGH);
 
