@@ -184,7 +184,7 @@ task  ahb_driver::drive_one_pkt(ahb_master_transaction tr);
     int unsigned  len = ahb_pkg::get_burst_len(tr.burst);
     len = len?len:  tr.data_size;
 
-    wait(!trans_wait[1]);
+    wait( !trans_wait[1] && !vif.busy );
     @( posedge vif.clk);
 
     set_address(tr);
