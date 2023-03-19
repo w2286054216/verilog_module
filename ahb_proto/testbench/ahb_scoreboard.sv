@@ -29,7 +29,7 @@ class ahb_scoreboard extends uvm_scoreboard;
     ahb_transaction  slave_queue[$];
     ahb_transaction  invalid_queue[$];
 
-    uvm_blocking_get_port #(ahb_transaction)  exp_port;
+    uvm_blocking_get_port #(ahb_transaction)  exp_port[`AHB_SLAVE_DEVICES];
     uvm_blocking_get_port #(ahb_transaction)  act_port;
 
 
@@ -38,8 +38,12 @@ class ahb_scoreboard extends uvm_scoreboard;
     endfunction 
 
     function  void  build_phase(uvm_phase phase);
+        string  str;
         super.build_phase(phase);
-        exp_port = new("exp_port", this);
+        for (int i = 0;  i < `AHB_SLAVE_DEVICES; i++ ) begin
+            $sformat(str, "exp_port%0d", i);
+            exp_port[i] = new(str, this);
+        end
         act_port = new("act_port", this);
     endfunction
 
@@ -48,15 +52,22 @@ class ahb_scoreboard extends uvm_scoreboard;
 endclass
 
 task  ahb_scoreboard::main_phase(uvm_phase phase);
-   ahb_transaction  master_trans,  slave_trans;
+   ahb_transaction  master_trans,  slaves_recv[`AHB_SLAVE_DEVICES],  slave_trans;
    bit result;
  
    super.main_phase(phase);
+
+    for (int i = 0; i < `AHB_SLAVE_DEVICES; i++) begin
+        fork
+            while (1) begin
+                exp_port[i].get(slaves_recv[i]);
+                slave_queue.push_back(slaves_recv[i]);
+            end
+        join
+    end
+
+
    fork 
-        while (1) begin
-            exp_port.get(slave_trans);
-            slave_queue.push_back(slave_trans);
-        end
 
         while (1) begin
             act_port.get(master_trans);

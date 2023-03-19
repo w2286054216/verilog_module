@@ -73,7 +73,7 @@ class ahb_env  extends  uvm_env;
 
       for (int i = 0; i < `AHB_SLAVE_DEVICES ; i++) begin
          s_agts[i].ap.connect(sagts_scb_fifos[i].analysis_export);
-         scb.exp_port.connect(sagts_scb_fifos[i].blocking_get_export);
+         scb.exp_port[i].connect(sagts_scb_fifos[i].blocking_get_export);
       end
 
    endfunction
