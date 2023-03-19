@@ -95,7 +95,7 @@ end
 
 ////////////////////////Sequential logic/////////////////////////////
 
-always @(posedge ahb_clk_in) begin
+always @(posedge ahb_clk_in  or negedge ahb_rstn_in) begin
         if (!ahb_rstn_in) begin
             addr_cur            <=   0;
             addr_next           <=   0;
