@@ -242,7 +242,8 @@ always @(*) begin
             STATE_TRANS_SEQ: begin
                 if ( !other_sel_in || !ahb_burst_out ||  other_error_in || ahb_resp_in || 
                     ( burst_counter && burst_len_fixed && ( trans_changed || !other_valid_in ) )
-                    || (trans_unready && ready_timeout) || ( !burst_counter && burst_len_fixed && other_delay_in ) )
+                    || (trans_unready && ready_timeout) || ( !burst_counter && burst_len_fixed 
+                    && other_delay_in ) )
                     next_state         =     STATE_ERROR;
                 else  if (!other_valid_in)
                     next_state         =     STATE_TRANS_IDLE;
