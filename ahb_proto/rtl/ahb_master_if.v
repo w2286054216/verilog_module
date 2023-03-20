@@ -467,10 +467,18 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
             end
 
 
+            STATE_TRANS_IDLE: begin
+                ahb_wdata_next     <=   ahb_ready_in && ahb_write_out ? other_wdata_in: ahb_wdata_next;
+                ahb_wdata_out      <=   ahb_ready_in && ahb_write_out ? ahb_wdata_next:  ahb_wdata_out;
+                other_ready_out    <=   trans_unready?  ahb_ready_in:  0;
+                other_error_out    <=   trans_unready?  ahb_resp_in:  0;
+                other_rdata_out    <=   !trans_unready || other_error_out ? 0: ahb_rdata_in;
 
-            STATE_TRANS_IDLE  ||  STATE_TRANS_BUSY || STATE_TRANS_NONSEQ || 
+            end
+            
+            
+            STATE_TRANS_BUSY || STATE_TRANS_NONSEQ || 
             STATE_TRANS_SEQ :begin
-                
                 ahb_wdata_next     <=   ahb_ready_in && ahb_write_out ? other_wdata_in: ahb_wdata_next;
                 ahb_wdata_out      <=   ahb_ready_in && ahb_write_out ? ahb_wdata_next:  ahb_wdata_out;
                 other_ready_out    <=   ahb_ready_in;
