@@ -101,7 +101,7 @@ reg  [2:0]  ahb_state;
 reg  [2:0]  next_state;
 
 
-
+reg  [AHB_DATA_WIDTH -1: 0]  ahb_wdata_next;
 reg  [4:0]  burst_counter;
 reg  busy_2_seq;
 reg  [$clog2(AHB_WAIT_TIMEOUT) -1: 0]  wait_counter;
@@ -393,7 +393,9 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
                 `endif
 
                 burst_counter       <=   add_new_trans?  ( 1<<trans_len ):  burst_counter;
-                busy_2_seq     <=   0;
+                busy_2_seq          <=   0;
+
+                trans_addr          <=   add_new_trans?  other_addr_in  : ahb_addr_out;
 
                 if ( add_new_trans )
                     trans_unready   <=  ahb_ready_in ? trans_unready: (trans_unready + 1);                    
@@ -447,6 +449,7 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
 
     if (!ahb_rstn_in) begin
         
+        ahb_wdata_next    <=   0;
         ahb_wdata_out     <=   0;
         other_ready_out   <=   0;
         other_error_out   <=   0;
@@ -456,25 +459,31 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
     else begin
         case  (ahb_state)
             STATE_RST: begin
+                ahb_wdata_next    <=   0;
                 ahb_wdata_out     <=   0;
                 other_ready_out   <=   0;
                 other_error_out   <=   0;
                 other_rdata_out   <=   0;
             end
 
+
+
             STATE_TRANS_IDLE  ||  STATE_TRANS_BUSY || STATE_TRANS_NONSEQ || 
             STATE_TRANS_SEQ :begin
-                ahb_wdata_out      <=   ahb_ready_in && ahb_write_out ? other_wdata_in: 0;
+                
+                ahb_wdata_next     <=   ahb_ready_in && ahb_write_out ? other_wdata_in: ahb_wdata_next;
+                ahb_wdata_out      <=   ahb_ready_in && ahb_write_out ? ahb_wdata_next:  ahb_wdata_out;
                 other_ready_out    <=   ahb_ready_in;
                 other_error_out    <=   ahb_resp_in;
                 other_rdata_out    <=   other_error_out? ahb_rdata_in: 0;
             end
 
             STATE_ERROR:begin
-                ahb_wdata_out    <=   0;
-                other_ready_out  <=   1;
-                other_error_out  <=   1;
-                other_rdata_out  <=   0;
+                ahb_wdata_next      <=   0;
+                ahb_wdata_out       <=   0;
+                other_ready_out     <=   1;
+                other_error_out     <=   1;
+                other_rdata_out     <=   0;
             end
 
             default:  ;
