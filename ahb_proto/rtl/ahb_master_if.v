@@ -197,7 +197,7 @@ always @(*) begin
 
             STATE_TRANS_IDLE: begin
                 if (  trans_unready[1] || ( trans_unready && ( !other_sel_in || other_error_in || ready_timeout ) ) 
-                       || ahb_resp_in  || ( !trans_unready && ( burst_counter || ahb_ready_in ) ) )
+                       || ahb_resp_in  )
                     next_state         =     STATE_ERROR;
                 else if(!other_sel_in)
                     next_state         =     STATE_RST;
