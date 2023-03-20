@@ -472,7 +472,7 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
                 ahb_wdata_out      <=   ahb_ready_in && ahb_write_out ? ahb_wdata_next:  ahb_wdata_out;
                 other_ready_out    <=   trans_unready?  ahb_ready_in:  0;
                 other_error_out    <=   trans_unready?  ahb_resp_in:  0;
-                other_rdata_out    <=   !trans_unready || other_error_out ? 0: ahb_rdata_in;
+                other_rdata_out    <=   !trans_unready || ahb_resp_in || !ahb_ready_in ? 0: ahb_rdata_in;
 
             end
             
