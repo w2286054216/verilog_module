@@ -479,11 +479,11 @@ always @(posedge ahb_clk_in or negedge ahb_rstn_in) begin
             
             STATE_TRANS_BUSY || STATE_TRANS_NONSEQ || 
             STATE_TRANS_SEQ :begin
-                ahb_wdata_next     <=   ahb_ready_in && ahb_write_out ? other_wdata_in: ahb_wdata_next;
-                ahb_wdata_out      <=   ahb_ready_in && ahb_write_out ? ahb_wdata_next:  ahb_wdata_out;
+                ahb_wdata_next     <=   !trans_unready[1] || ahb_ready_in ? other_wdata_in: ahb_wdata_next;
+                ahb_wdata_out      <=   !trans_unready[1] || ahb_ready_in ? ahb_wdata_next: ahb_wdata_out;
                 other_ready_out    <=   ahb_ready_in;
                 other_error_out    <=   ahb_resp_in;
-                other_rdata_out    <=   other_error_out? ahb_rdata_in: 0;
+                other_rdata_out    <=   !ahb_resp_in && ahb_ready_in? ahb_rdata_in: 0;
             end
 
             STATE_ERROR:begin
