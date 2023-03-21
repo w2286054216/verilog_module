@@ -121,28 +121,40 @@ task  ahb_driver::data_transfer(ahb_master_transaction tr);
         trans_wait++;
     end
 
-
-    if ( len == 1 )
+    if ( len == 1 )begin
+        @(posedge vif.clk);
         return;
+    end
 
 
     for (int i = 1;  i < len; i++) begin
-        wait(!trans_wait[1] || vif.ready);
-        @(posedge vif.clk);
-        if (tr.write )
-            vif.wdata    <=  !vif.master_error && !vif.other_error ? tr.wdata[i]: 0;
 
-        trans_wait++;
+        while (1) begin
+            if (vif.master_error || vif.other_error || !vif.sel  || !vif.valid)
+                return;              
+            @(posedge vif.clk);
+            if (vif.ready || ( !trans_wait[1]  && tr.write ) ) break;
+        end
 
-        if (!trans_wait[1])
-            continue;
+        if (tr.write)begin
+            trans_wait    =   vif.ready ? trans_wait: (trans_wait[1] ? trans_wait: (trans_wait + 1));            
+            vif.wdata     <=  trans_wait[1] && !vif.ready ? vif.wdata: tr.wdata[ i ];            
+        end
+        else  begin
+            trans_wait      =    0;            
+            vif.wdata       <=   0;
+        end
 
-        wait( vif.ready == 1'd1);
+    end
+
+    trans_wait  =   tr.write ? trans_wait:  1;
+    while (trans_wait) begin
         @(posedge vif.clk);
         if (vif.master_error || vif.other_error || !vif.sel  || !vif.valid)
-                break;
-        trans_wait--;
+            return;
+        if (vif.ready )   trans_wait--;
     end
+
 
 endtask
 
@@ -201,10 +213,9 @@ task  ahb_driver::drive_one_pkt(ahb_master_transaction tr);
 
     if (len == 1) return;
 
+    vif.valid        <=   0;
     @(posedge vif.clk);
 
-
-    vif.valid        <=   0;
     repeat(6)  @(posedge vif.clk);
 
     reset_master_if();
