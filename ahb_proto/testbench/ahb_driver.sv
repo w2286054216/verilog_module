@@ -211,10 +211,8 @@ task  ahb_driver::drive_one_pkt(ahb_master_transaction tr);
 
     data_transfer(tr);
 
+    vif.valid      <=  0;
     if (len == 1) return;
-
-    vif.valid        <=   0;
-    @(posedge vif.clk);
 
     repeat(6)  @(posedge vif.clk);
 
