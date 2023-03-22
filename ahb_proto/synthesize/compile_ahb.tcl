@@ -8,7 +8,7 @@
 set my_verilog_files [ list ahb_master_if.v  ahb_slave_if.v]
 
 #顶层模块
-set my_toplevel apb_master_if
+set my_toplevel ahb_master_if
 
 #时钟
 set my_clk_freq_MHz 100
