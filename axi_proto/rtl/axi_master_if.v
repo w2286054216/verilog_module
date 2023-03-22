@@ -6,7 +6,7 @@
 * Date Created:    2023/2/19
 * Description:     AXI master interface.
 *                  Address and data axi widths are configurable using 
-*                  APB_ADDR_WIDTH and APB_DATA_WIDTH parameters.
+*                  AXI_ADDR_WIDTH and AXI_DATA_WIDTH parameters.
 *
 * Version:         0.1
 *************************************************************************/
