@@ -14,9 +14,10 @@
 `ifndef DEFAULT_CASE_SV
 `define DEFAULT_CASE_SV
 
-`include "ahb_master_transaction.sv"
-`include "base_test.sv"
-`include "uvm_macros.svh"
+`include  "definition.sv"
+`include  "ahb_master_transaction.sv"
+`include  "base_test.sv"
+`include  "uvm_macros.svh"
 
 import uvm_pkg::*;
 
@@ -35,8 +36,8 @@ class default_case_sequence extends uvm_sequence #(ahb_master_transaction);
       if(starting_phase != null) 
          starting_phase.raise_objection(this);
 
-      repeat(90) begin
-         `uvm_do(m_trans, get_sequencer(), -1,  { m_trans.pload.size() == 60;})
+      repeat(`AHB_TRANS_TIMES) begin
+         `uvm_do(m_trans)
       end
 
       #1000;
@@ -56,11 +57,11 @@ class default_case extends base_test;
       super.new(name,parent);
    endfunction
 
-   function void my_case0::build_phase(uvm_phase phase);
+   function void  build_phase(uvm_phase phase);
       super.build_phase(phase);
 
       uvm_config_db#(uvm_object_wrapper)::set(this, 
-                                             "env.master_agt.sqr.main_phase", 
+                                             "env.m_agt.sqr.main_phase", 
                                              "default_sequence", 
                                              default_case_sequence::type_id::get());
    endfunction

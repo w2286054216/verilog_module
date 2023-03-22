@@ -15,7 +15,7 @@
 `define  AHB_DRIVER_SV
 
 `include  "definition.sv"
-`include  "ahb_master_if.sv"
+`include  "master_if.sv"
 `include  "ahb_master_transaction.sv"
 `include  "uvm_macros.svh"
 
@@ -23,11 +23,11 @@
 import  uvm_pkg::*;
 
 
-class ahb_driver extends uvm_driver;
+class ahb_driver extends uvm_driver #(ahb_master_transaction);
 
    `uvm_component_utils(ahb_driver)
     
-    VTSB_MASTER_T  vif_master;
+    VTSB_MASTER_IF  vif;
 
     local bit [1:0] trans_wait;
 
@@ -38,14 +38,147 @@ class ahb_driver extends uvm_driver;
 
    virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        if(!uvm_config_db #(VTSB_MASTER_T)::get(this, "", "vif_master", vif_master))
+        if(!uvm_config_db #(VTSB_MASTER_IF)::get(this, "", "vif", vif))
             `uvm_fatal("ahb_driver", "virtual interface must be set for vif!!!")
    endfunction
 
-    extern task main_phase(uvm_phase phase);
-    extern task drive_one_pkt(ahb_master_transition tr);
+    extern  task  main_phase(uvm_phase phase);
+    extern  task  drive_one_pkt(ahb_master_transaction tr);
+    extern  function  void set_address(ahb_master_transaction tr);
+    extern  task  data_transfer(ahb_master_transaction tr);
+    extern  function  reset_master_if();
 
 endclass
+
+
+
+function  void  ahb_driver::set_address(ahb_master_transaction tr);
+
+    vif.addr                <=  tr.addr;
+    vif.burst               <=  tr.burst;
+
+    if (tr.delay ==  1)
+        vif.delay           <=  1;
+    else if(!tr.delay)
+        vif.delay           <=  0;
+    else
+        vif.delay           <=  repeat(tr.delay - 1) @(posedge vif.clk) 1;
+
+    vif.delay               <=  repeat(tr.delay + 2) @(posedge vif.clk) 0;
+
+    if (tr.other_error == 1)
+        vif.other_error         <=   1;
+    else if (!tr.other_error)
+        vif.other_error         <=   0;
+    else
+        vif.other_error         <=  repeat(tr.other_error - 1) @(posedge vif.clk) 1;
+    
+
+    if (tr.sel ==  1)
+        vif.sel         <=    1;
+    else  if(!tr.sel)
+        vif.sel         <=    0;
+    else begin
+        vif.sel         <=    1;
+        vif.sel         <=    repeat(tr.other_error - 1) @(posedge vif.clk) 0;
+    end
+    
+
+
+    if (tr.valid == 1)
+        vif.valid         <=  1;
+    else  if(!tr.valid)
+        vif.valid         <=  0;
+    else begin
+        vif.valid         <=  1;
+        vif.valid         <=  repeat(tr.valid - 1) @(posedge vif.clk) 0;
+    end
+        
+    
+
+    `ifdef  AHB_PROT
+        vif.prot           <=  tr.prot;
+    `endif
+    `ifdef  AHB_WSTRB
+        vif.strb           <=  tr.strb;
+    `endif
+
+    vif.size           <=  tr.size;
+    vif.write          <=  tr.write;
+
+endfunction
+
+
+
+task  ahb_driver::data_transfer(ahb_master_transaction tr);
+
+    int unsigned  len =  ahb_pkg::get_burst_len(tr.burst);
+    len = len?len:  tr.data_size;
+
+
+    if (tr.write)begin
+        vif.wdata    <=  tr.write? tr.wdata[0]:  0;        
+        trans_wait++;
+    end
+
+    if ( len == 1 )begin
+        @(posedge vif.clk);
+        return;
+    end
+
+
+    for (int i = 1;  i < len; i++) begin
+
+        while (1) begin
+            if (vif.master_error || vif.other_error || !vif.sel  || !vif.valid)
+                return;              
+            @(posedge vif.clk);
+            if (vif.ready || ( !trans_wait[1]  && tr.write ) ) break;
+        end
+
+        if (tr.write)begin
+            trans_wait    =   vif.ready ? trans_wait: (trans_wait[1] ? trans_wait: (trans_wait + 1));            
+            vif.wdata     <=  trans_wait[1] && !vif.ready ? vif.wdata: tr.wdata[ i ];            
+        end
+        else  begin
+            trans_wait      =    0;            
+            vif.wdata       <=   0;
+        end
+
+    end
+
+    trans_wait  =   tr.write ? trans_wait:  1;
+    while (trans_wait) begin
+        @(posedge vif.clk);
+        if (vif.master_error || vif.other_error || !vif.sel  || !vif.valid)
+            return;
+        if (vif.ready )   trans_wait--;
+    end
+
+
+endtask
+
+
+function  ahb_driver::reset_master_if();
+
+    vif.addr                <=    0;
+    vif.burst               <=    0;
+    vif.delay               <=    0;
+    vif.other_error         <=    0;
+
+    `ifdef  AHB_PROT
+        vif.prot            <=    0;
+    `endif
+    `ifdef  AHB_WSTRB
+        vif.strb            <=    0;
+    `endif
+
+    vif.sel                 <=    0;
+    vif.size                <=    0;
+    vif.valid               <=    0;
+    vif.write               <=    0;
+
+endfunction
 
 
 task ahb_driver::main_phase(uvm_phase phase);
@@ -58,45 +191,36 @@ task ahb_driver::main_phase(uvm_phase phase);
         seq_item_port.item_done();
     end
 
-    repeat(5) @(posedge vif.clk);
+    repeat(6) @(posedge vif.clk);
 
 endtask
 
 
 task  ahb_driver::drive_one_pkt(ahb_master_transaction tr);
 
-    wait( trans_wait < 2 );
+    int unsigned  len = ahb_pkg::get_burst_len(tr.burst);
+    len = len?len:  tr.data_size;
 
-    vif_master.addr           <= tr.addr;
-    vif_master.burst          <= tr.burst;
-    vif_master.end_tran       <= tr.end_tran;    
-    vif_master.other_error    <= tr.other_error;
-    vif_master.prot           <= tr.prot;
-    vif_master.size           <= tr.size;
-    vif_master.strb           <= tr.strb;
-    vif_master.valid          <= tr.valid;
-    vif_master.write          <= tr.write;
+    wait( !trans_wait[1] || !vif.busy  );
+    @( posedge vif.clk);
 
-    if (tr.delay) begin
-        if (tr.delay == 1'd1)
-            vif_master.delay  <= 1'd1;
-        else
-            vif_master.delay  <= #(tr.delay - 1) 1'd1;
-    end
+    set_address(tr);
 
-    if (tr.other_error) begin
-        if (tr.other_error == 1)
-            vif_master.other_error  <= 1'd1;
-        else
-            vif_master.other_error  <= #(tr.other_error - 1) 1'd1;
-    end
+    if (!tr.sel || !tr.valid )
+        return;
 
-    repeat(6)  @(posedge vif_master.clk);
+    data_transfer(tr);
 
-    vif_master.delay  <= 1'd1;
-    vif_master.other_error  <= 1'd1;
+    vif.valid      <=  0;
+    if (len == 1) return;
 
-   `uvm_info("my_driver", "end drive one pkt", UVM_LOW);
+    repeat(6)  @(posedge vif.clk);
+
+    reset_master_if();
+    trans_wait    =   0;
+
+   `uvm_info("ahb_driver", "end drive one pkt", UVM_HIGH);
+
 endtask
 
 

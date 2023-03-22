@@ -24,19 +24,19 @@
 import uvm_pkg::*;
 
 
-class ahb_env #(int slave_number = 4) extends uvm_env;
+class ahb_env  extends  uvm_env;
    
    `uvm_component_utils(ahb_env)
 
-   ahb_agent  master_agt;
-   ahb_agent  slaves_agt[slave_number];];
+   ahb_agent  m_agt;
+   ahb_agent  s_agts[`AHB_SLAVE_DEVICES];
    ahb_scoreboard  scb;
 
 
-   uvm_tlm_analysis_fifo #(ahb_transactions_queue)  master_scb_fifo;
-   uvm_tlm_analysis_fifo #(ahb_transactions_queue)  slave_scb_fifos[slave_number];
+   uvm_tlm_analysis_fifo #(ahb_transaction)  magt_scb_fifo;
+   uvm_tlm_analysis_fifo #(ahb_transaction)  sagts_scb_fifos[`AHB_SLAVE_DEVICES];
 
-   function new(string name = "my_env", uvm_component parent);
+   function new(string name = "ahb_env", uvm_component parent);
       super.new(name, parent);
       `uvm_info("ahb_env", "new is called", UVM_HIGH);
    endfunction
@@ -46,17 +46,19 @@ class ahb_env #(int slave_number = 4) extends uvm_env;
    virtual function void build_phase(uvm_phase phase);
          super.build_phase(phase);
 
-         slaves_agt = new[slave_number];
-         slave_agt_scb  = new[slave_number];
+         m_agt = ahb_agent::type_id::create("m_agt", this);
+         m_agt.is_active = UVM_ACTIVE;
+         m_agt.m_agt  =  1;
+         magt_scb_fifo = new("magt_scb_fifo", this);        
 
-         master_agt = ahb_agent::type_id::create("master_agt", this);
-         master_agt.is_active = UVM_ACTIVE;
-         master_scb_fifo = new("master_scb_fifo", this)         
-
-         for (int i = 0; i < slave_number ; i++) begin
-            slaves_agt[i] = ahb_agent::type_id::create("slave_agt"`"i`", this);
-            slaves_agt[i].is_active = UVM_PASSIVE;
-            slave_scb_fifos[i] = new("slave_agt"`"i`", this);
+         for (int i = 0; i < `AHB_SLAVE_DEVICES ; i++) begin
+            string str;
+            $sformat(str, "s_agt%0d" , i);
+            s_agts[i] = ahb_agent::type_id::create(str, this);
+            s_agts[i].is_active = UVM_PASSIVE;
+            s_agts[i].m_agt  =  0;
+            $sformat(str, "sagts_scb_fifo%d", i);
+            sagts_scb_fifos[i] = new(str, this);
          end
 
          scb = ahb_scoreboard::type_id::create("scb", this);
@@ -66,12 +68,13 @@ class ahb_env #(int slave_number = 4) extends uvm_env;
 
    function void connect_phase(uvm_phase phase);
       super.connect_phase(phase);
-      master_agt.ap.connect(master_scb_fifo.analysis_export);
+      m_agt.ap.connect(magt_scb_fifo.analysis_export);
+      scb.act_port.connect(magt_scb_fifo.blocking_get_export);
 
-      for (int i = 0; i < slave_number ; i++) begin
-         slave_scb_fifos[i].ap.connect(slave_scb_fifos.analysis_export);
+      for (int i = 0; i < `AHB_SLAVE_DEVICES ; i++) begin
+         s_agts[i].ap.connect(sagts_scb_fifos[i].analysis_export);
+         scb.exp_port[i].connect(sagts_scb_fifos[i].blocking_get_export);
       end
-
 
    endfunction
 

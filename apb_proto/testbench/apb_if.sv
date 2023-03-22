@@ -1,6 +1,5 @@
 
-/**********************************************************************************************************************************
-* File Name:     apb_if.sv
+/*******************************************************************************
 * Author:          wuqlan
 * Email:           
 * Date Created:    2022/12/28
@@ -8,34 +7,35 @@
 *
 *
 * Version:         0.1
-*********************************************************************************************************************************/
+********************************************************************************/
 
 
-
-`ifndef _INCL_APB_IF
-`define _INCL_APB_IF
+`ifndef  APB_IF_SV
+`define  APB_IF_SV
 
 
 `include "definition.sv"
 
 interface apb_if(input logic clk, rstn);
     
-    wire  logic [`APB_ADDR_WIDTH-1:0] addr;
-    wire  logic master_error_out;
-    wire  logic master_error_in;
-    wire  logic penable;
-    wire  logic [2:0] prot;    
-    wire  logic master_ready;
-    wire  logic [`APB_DATA_WIDTH-1:0] rdata;
-    wire  logic [`APB_SLAVE_DEVICES -1:0] sels;
-    wire  logic [`APB_SLAVE_DEVICES -1:0] slave_error_out;
-    wire  logic [`APB_SLAVE_DEVICES -1:0] slave_ready;
-    wire  logic [(`APB_DATA_WIDTH / 8) -1:0] strb;
-    wire  logic [`APB_DATA_WIDTH-1:0] wdata;
-    wire  logic write;
+    wire  logic  [`APB_ADDR_WIDTH-1:0] addr;
+    wire  logic  penable;
+    wire  logic  [`APB_DATA_WIDTH-1:0] rdata;    
+    wire  logic  ready;
+    wire  logic  sel;
+    wire  logic  [`APB_DATA_WIDTH-1:0]  wdata;
+    wire  logic  write;
 
-    assign master_ready = slave_ready[ $clog2(sels) ];
-    assign master_error_in = slave_error_out[ $clog2(sels)] ;
+    `ifdef  APB_SLVERR
+        wire  logic  master_error_out;      
+        wire  logic  slave_error_in;
+    `endif
+    `ifdef  APB_PROT
+        wire  logic  [2:0] prot;
+    `endif
+    `ifdef  APB_WSTRB
+        wire  logic  [(`APB_DATA_WIDTH / 8) -1:0]  strb;    
+    `endif
 
 
 endinterface //master_if

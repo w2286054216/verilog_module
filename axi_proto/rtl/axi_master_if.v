@@ -6,14 +6,13 @@
 * Date Created:    2023/2/19
 * Description:     AXI master interface.
 *                  Address and data axi widths are configurable using 
-*                  APB_ADDR_WIDTH and APB_DATA_WIDTH parameters.
+*                  AXI_ADDR_WIDTH and AXI_DATA_WIDTH parameters.
 *
 * Version:         0.1
 *************************************************************************/
-module axi_master_if #( parameter AXI_ADDR_WIDTH = 32, 
-                        parameter  AXI_DATA_WIDTH = 32, 
-                        parameter  AXI_ID_WIDTH  = 16,
-                        localparam  AXI_WSTRB_WIDTH  = AXI_DATA_WIDTH >> 3) 
+module axi_master_if #( parameter  AXI_ADDR_WIDTH   =  32, 
+                        parameter  AXI_DATA_WIDTH   =  32, 
+                        parameter  AXI_ID_WIDTH     =  16 ) 
                     (
 
     input  axi_clk_in,
@@ -38,7 +37,7 @@ module axi_master_if #( parameter AXI_ADDR_WIDTH = 32,
     output  reg  [AXI_ID_WIDTH -1:0]  axi_wid_out,
     output  reg  axi_wlast_out,
     input   reg  axi_wready_in,
-    output  reg [AXI_WSTRB_WIDTH -1:0]  axi_wstrb_out,
+    output  reg [ (AXI_DATA_WIDTH / 8) -1:0]  axi_wstrb_out,
     output  reg  axi_wvalid_out,
 
     //---------write resp channel-------------//
@@ -84,7 +83,7 @@ module axi_master_if #( parameter AXI_ADDR_WIDTH = 32,
     output  reg  other_ready_out,       
     input   other_sel_in,
     input   [2:0]  other_size_in,
-    input   [AXI_WSTRB_WIDTH -1:0]  other_strb_in,
+    input   [ (AXI_DATA_WIDTH / 8) -1:0]  other_strb_in,
     input   other_valid_in,
     output  other_wbusy_out,
     input   other_write_in,   
@@ -163,7 +162,7 @@ reg  ar_read;
 
 
 // other module register
-reg  [AXI_WSTRB_WIDTH -1:0 ]  other_strb;
+reg  [ ( AXI_DATA_WIDTH / 8 ) -1:0 ]  other_strb;
 reg  [AXI_DATA_WIDTH -1:0]  other_wdata;
 reg  other_error;
 
