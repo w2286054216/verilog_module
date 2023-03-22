@@ -13,8 +13,7 @@
 
 module  apb_master_if  #(   parameter   APB_DATA_WIDTH  =  32,
                             parameter   APB_ADDR_WIDTH  =  32,
-                            parameter   TIMEOUT_CYCLE   =  6,
-                            localparam  OTHER_STRB_WIDTH = (APB_DATA_WIDTH / 8)
+                            parameter   TIMEOUT_CYCLE   =  6
                         )
 (
     /*----------apb bus signal-------------*/
@@ -37,7 +36,7 @@ module  apb_master_if  #(   parameter   APB_DATA_WIDTH  =  32,
     `endif
 
     `ifdef  APB_WSTRB
-        output  reg  [OTHER_STRB_WIDTH -1: 0]  apb_strb_out,
+        output  reg  [(APB_DATA_WIDTH / 8) -1: 0]  apb_strb_out,
     `endif
 
     output  reg  [APB_DATA_WIDTH-1:0]  apb_wdata_out,
@@ -60,7 +59,7 @@ module  apb_master_if  #(   parameter   APB_DATA_WIDTH  =  32,
     input   other_sel_in,
 
     `ifdef  APB_WSTRB
-        input   [OTHER_STRB_WIDTH -1:0]  other_strb_in,
+        input   [(APB_DATA_WIDTH / 8) -1:0]  other_strb_in,
     `endif
 
     input   [APB_DATA_WIDTH-1:0]  other_wdata_in,

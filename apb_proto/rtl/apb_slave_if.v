@@ -13,8 +13,7 @@
 
 module  apb_slave_if #( parameter   APB_DATA_WIDTH    = 32,
                         parameter   APB_ADDR_WIDTH    = 32,
-                        parameter   TIMEOUT_CYCLE     =  6,
-                        localparam  OTHER_STRB_WIDTH  = (APB_DATA_WIDTH / 8)
+                        parameter   TIMEOUT_CYCLE     =  6
                         )
 (
     input  apb_clk_in,
@@ -30,7 +29,7 @@ module  apb_slave_if #( parameter   APB_DATA_WIDTH    = 32,
     `endif
 
     `ifdef  APB_WSTRB
-        input  [OTHER_STRB_WIDTH -1:0]  apb_strb_in,
+        input  [(APB_DATA_WIDTH / 8) -1:0]  apb_strb_in,
     `endif
 
     `ifdef  APB_SLVERR
@@ -57,7 +56,7 @@ module  apb_slave_if #( parameter   APB_DATA_WIDTH    = 32,
         output  reg  [2:0]  other_prot_out,
     `endif
     `ifdef  APB_WSTRB
-        output  reg  [OTHER_STRB_WIDTH -1:0]  other_strb_out,
+        output  reg  [(APB_DATA_WIDTH / 8) -1:0]  other_strb_out,
     `endif
 
     output  reg  other_sel_out,

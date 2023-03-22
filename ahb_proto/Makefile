@@ -1,21 +1,23 @@
 
 DIR = $(shell pwd)
-RTL_DIR = ${DIR}/rtl/
-TSB_DIR = ${DIR}/testbench/
+RTL_DIR = ${DIR}/rtl
+TSB_DIR = ${DIR}/testbench
 
 
-VOPTS = -sverilog +v2k -debug_acc+all  +libext+.v -y ${RTL_DIR}  +libext+.sv -y  ${TSB_DIR} +incdir+${TSB_DIR} +race=all -race -raced
+VOPTS = -sverilog +v2k -debug_acc+all +vpi   +incdir+$(UVM_HOME)  -CFLAGS -DVCS $(UVM_HOME)/dpi/uvm_dpi.cc   \
+			$(UVM_HOME)/uvm_pkg.sv  ${TSB_DIR}/ahb_pkg.sv  +incdir+${TSB_DIR} +race=all -race -raced  +libext+.v 	\
+			-y ${RTL_DIR}  +libext+.sv -y  ${TSB_DIR}  -timescale=1ns/1ns
 SOPT = +ntb_solver_mode=1 -l simv.log
 
 
 
 
 simv.vdb:	simv
-	./simv ${SOPT} +ntb_random_seed=19  +UVM_PHASE_TRACE
-	./simv ${SOPT} +ntb_random_seed_automatic  +UVM_PHASE_TRACE
+	./simv ${SOPT} +ntb_random_seed=19
+	./simv ${SOPT} +ntb_random_seed_automatic
 
 simv:
-	find ${RTL_DIR} -name "*.v" > rtl_filelist.f
+	find ${RTL_DIR}  -name "*.v" > rtl_filelist.f
 	find ${TSB_DIR}  -name "*.sv" > tsb_filelist.f
 	vcs ${VOPTS} -l comp.log  -f tsb_filelist.f   -f rtl_filelist.f
 
